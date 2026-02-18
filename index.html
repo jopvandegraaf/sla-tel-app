@@ -349,6 +349,7 @@
                 <button class="filter-btn" data-filter="UDEA">UDEA</button>
                 <button class="filter-btn" data-filter="POSTUMA">Postuma</button>
                 <button class="filter-btn" data-filter="VHC">VHC</button>
+                <button class="filter-btn" data-filter="BAIN BREWING">Bain Brewing</button>
                 <button class="filter-btn" data-filter="other">Overig</button>
             </div>
             
@@ -388,10 +389,10 @@
             { id: 'udea-593', artikel: '593', naam: 'CITROEN (Primofiore) maat 4/5 (6x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 6, min: 4 },
             
             // AGF - UDEA ORDERPICK CEL (zonder artikelnummers)
-            { id: 'udea-gember', artikel: '17159', naam: 'GEMBER bulk 2kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 8, min: 4 },
+            { id: 'udea-gember', artikel: '17159', naam: 'GEMBER bulk 2kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 8, min: 4, specialOrder: 2 },
             { id: 'udea-komkommers', artikel: '162', naam: 'KOMKOMMERS KLASSE 2 1 krat', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 14, min: 10 },
             { id: 'udea-limoenen', artikel: '617', naam: 'LIMOENEN (Limes Tahiti) 4 kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 6, min: 4 },
-            { id: 'udea-perssinaas', artikel: '579', naam: 'PERSSINAASAPPELS (verpakt) per net', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 12, min: 2 },
+            { id: 'udea-perssinaas', artikel: '579', naam: 'PERSSINAASAPPELS (verpakt) per net', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 12, min: 2, specialOrder: 1 },
             { id: 'udea-romatomaten', artikel: '184', naam: 'TOMAAT ROMA (47-57) per krat (3x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 16, min: 14 },
             { id: 'udea-waspeen', artikel: '293', naam: 'WINTERPEEN (gewassen) per krat (10x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 12, min: 6 },
             
@@ -436,6 +437,10 @@
             { id: 'vhc-olijfolie', artikel: '', naam: 'OLIJFOLIE FLES', leverancier: 'VHC', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0 },
             { id: 'kraats-eieren', artikel: '', naam: 'EIEREN (doos) 180 stuks - kraats', leverancier: 'Kraats', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0 },
             { id: 'solstice-matcha', artikel: '', naam: 'MATCHA', leverancier: 'SOLSTICE', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0 },
+            
+            // DKW - BAIN BREWING MAGAZIJN
+            { id: 'bain-gingershot', artikel: '', naam: 'GINGER SHOT doos (15 shots)', leverancier: 'BAIN BREWING', locatie: 'MAGAZIJN', categorie: 'DKW', par: 8, min: 2 },
+            { id: 'bain-kombucha', artikel: '', naam: 'KOMBUCHA doos (24 flessen)', leverancier: 'BAIN BREWING', locatie: 'MAGAZIJN', categorie: 'DKW', par: 12, min: 4 },
             
             // VIS / ZOET
             { id: 'veerman-zalm', artikel: '', naam: 'WARMGEROOKTE ZALM 1 kg', leverancier: 'Jan Veerman', locatie: 'ORDERPICK CEL', categorie: 'VIS', par: 0, min: 0 },
@@ -520,7 +525,8 @@
                 prods.forEach(p => {
                     const count = counts[p.id] || 0;
                     const needsOrder = count <= p.min && p.min > 0;
-                    const orderQty = needsOrder ? p.par - count : 0;
+                    // Use specialOrder if defined, otherwise calculate PAR - count
+                    const orderQty = needsOrder ? (p.specialOrder !== undefined ? p.specialOrder : p.par - count) : 0;
                     
                     html += `<div class="product-item ${count > 0 ? 'has-count' : ''} ${needsOrder ? 'needs-order' : ''}">
                         <div class="product-info">
@@ -568,7 +574,8 @@
                 })
                 .map(p => {
                     const count = counts[p.id] || 0;
-                    const orderQty = p.par - count;
+                    // Check if product has special order quantity
+                    const orderQty = p.specialOrder !== undefined ? p.specialOrder : (p.par - count);
                     return {
                         'Artikelnummer': p.artikel || 'Geen nummer',
                         'Naam': p.naam,
