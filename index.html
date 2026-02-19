@@ -589,9 +589,9 @@
                     };
                 });
             
-            // Alle tellingen voor referentie
+            // Alle tellingen voor referentie (ook als telling 0 is)
             const allCounts = products
-                .filter(p => counts[p.id] > 0)
+                .filter(p => counts[p.id] !== undefined)
                 .map(p => ({
                     'Artikelnummer': p.artikel || 'Geen nummer',
                     'Naam': p.naam,
