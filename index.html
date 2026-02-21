@@ -499,7 +499,8 @@
             document.getElementById('countedProducts').textContent = counted.length;
             document.getElementById('totalItems').textContent = total;
             document.getElementById('needsOrderProducts').textContent = needsOrder.length;
-            document.getElementById('exportBtn').disabled = counted.length === 0;
+            // Export button always enabled - we export all products (counted or not)
+            document.getElementById('exportBtn').disabled = false;
         }
 
         function renderProducts() {
@@ -589,13 +590,12 @@
                     };
                 });
             
-            // Alle tellingen voor referentie (ook als telling 0 is)
+            // Alle tellingen voor referentie (alle producten, ook niet-getelde op 0)
             const allCounts = products
-                .filter(p => counts[p.id] !== undefined)
                 .map(p => ({
                     'Artikelnummer': p.artikel || 'Geen nummer',
                     'Naam': p.naam,
-                    'Geteld': counts[p.id],
+                    'Geteld': counts[p.id] || 0,
                     'Leverancier': p.leverancier,
                     'Locatie': p.locatie,
                     'Categorie': p.categorie
