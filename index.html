@@ -2,738 +2,1303 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#009F4B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>SLA Keuken Orderpick Voorraad</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/neue-montreal">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --groen: #009F4B;
+            --groen-donker: #008A42;
+            --groen-licht: #e6f7ed;
+            --bg: #F8F3F0;
+            --tekst: #1f2937;
+            --grijs: #6b7280;
+            --rand: #e0e0e0;
+            --geel: #ffc107;
+            --geel-licht: #fff3cd;
+            --oranje: #f59e0b;
+            --rood: #b91c1c;
+            --rood-licht: #fee2e2;
         }
-        
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; }
+
         body {
             font-family: 'Neue Montreal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            background: #F8F3F0;
-            padding: 20px;
+            background: var(--bg);
+            color: var(--tekst);
+            padding: 20px 20px 100px;
         }
-        
+
+        /* geen overflow:hidden op de container, anders werkt de sticky zoekbalk niet */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
         }
-        
+
         .header {
-            background: #009F4B;
+            background: var(--groen);
             color: white;
-            padding: 30px;
+            padding: 26px 30px;
+            border-radius: 12px 12px 0 0;
         }
-        
-        .header h1 {
-            font-size: 28px;
-            font-weight: 500;
-            margin-bottom: 10px;
-            font-family: 'Neue Montreal', sans-serif;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-        
-        .controls {
-            padding: 20px 30px;
+        .header h1 { font-size: 28px; font-weight: 500; margin-bottom: 8px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+
+        .tel-info { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+        .tel-info span { background: rgba(255,255,255,0.18); padding: 4px 10px; border-radius: 6px; }
+        .tel-info span.week { background: var(--oranje); color: #000; font-weight: 500; }
+
+        /* ---------- zoekbalk + filters (blijft bovenin staan tijdens scrollen) */
+        .toolbar {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 20;
             background: #fafafa;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid var(--rand);
+            padding: 14px 30px;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        
-        .search-box {
-            flex: 1;
-            min-width: 250px;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 15px;
-            transition: border-color 0.3s;
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: #009F4B;
-        }
-        
-        .filter-group {
-            display: flex;
+            flex-direction: column;
             gap: 10px;
         }
-        
+        .search-row { display: flex; gap: 10px; align-items: stretch; }
+        .search-row input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px 14px;
+            border: 2px solid var(--rand);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            background: white;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .search-row input:focus { outline: none; border-color: var(--groen); }
+
+        .view-toggle { display: flex; border: 2px solid var(--rand); border-radius: 8px; overflow: hidden; flex-shrink: 0; background: white; }
+        .view-toggle button {
+            padding: 0 14px;
+            border: 0;
+            background: white;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--tekst);
+            cursor: pointer;
+        }
+        .view-toggle button + button { border-left: 2px solid var(--rand); }
+        .view-toggle button.active { background: var(--groen); color: white; }
+
+        .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
         .filter-btn {
-            padding: 10px 20px;
-            border: 2px solid #e0e0e0;
+            padding: 9px 14px;
+            border: 2px solid var(--rand);
             background: white;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            transition: all 0.3s;
+            font-family: inherit;
+            color: var(--tekst);
+            white-space: nowrap;
+            transition: border-color .2s, background .2s;
         }
-        
-        .filter-btn:hover {
-            border-color: #009F4B;
-            color: #009F4B;
-        }
-        
-        .filter-btn.active {
-            background: #009F4B;
-            color: white;
-            border-color: #009F4B;
-        }
-        
-        .export-btn {
-            padding: 12px 24px;
-            background: #009F4B;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 500;
-            transition: background 0.3s;
-        }
-        
-        .export-btn:hover {
-            background: #008A42;
-        }
-        
-        .export-btn:disabled {
-            background: #d1d5db;
-            cursor: not-allowed;
-        }
-        
-        .reset-btn {
-            padding: 12px 24px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 500;
-            transition: background 0.3s;
-        }
-        
-        .reset-btn:hover {
-            background: #dc2626;
-        }
-        
-        .stats {
-            padding: 20px 30px;
-            background: #f9fafb;
-            display: flex;
-            gap: 30px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .stat {
-            flex: 1;
-        }
-        
-        .stat-label {
+        @media (hover: hover) { .filter-btn:hover { border-color: var(--groen); } }
+        .filter-btn.active { background: var(--groen); color: white; border-color: var(--groen); }
+        .filter-btn.status { border-style: dashed; }
+        .filter-btn.status.active { border-style: solid; }
+        .chip-count {
+            display: inline-block;
+            min-width: 22px;
+            padding: 0 6px;
+            margin-left: 4px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            color: var(--tekst);
             font-size: 12px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            line-height: 20px;
+            text-align: center;
         }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: 500;
-            color: #1f2937;
+        .filter-btn.active .chip-count { background: rgba(255,255,255,0.28); color: white; }
+        .filter-btn.filter-week.today { border-color: var(--oranje); box-shadow: 0 0 0 2px #fde68a; }
+        .filter-btn.filter-week.today.active { background: var(--oranje); border-color: var(--oranje); color: #000; }
+
+        /* ---------- voortgang */
+        .stats {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 24px;
+            padding: 16px 30px;
+            background: #f9fafb;
+            border-bottom: 1px solid var(--rand);
         }
-        
-        .products {
-            padding: 20px 30px;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        
-        .supplier-group {
-            margin-bottom: 30px;
-        }
-        
-        .supplier-header {
+        .stat-label { font-size: 12px; color: var(--grijs); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .stat-value { font-size: 24px; font-weight: 500; color: var(--tekst); }
+        .stat-value .of { color: var(--grijs); font-size: 18px; }
+        .stat-value.warn { color: #b7791f; }
+        .stat-value.alert { color: #c2410c; }
+        .progress { height: 6px; background: #e5e7eb; border-radius: 999px; margin-top: 8px; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0; background: var(--groen); transition: width .3s; }
+
+        /* ---------- productlijst */
+        .products { padding: 6px 30px 24px; }
+
+        .groep { margin-top: 18px; }
+        .groep-header {
             font-size: 18px;
             font-weight: 500;
-            color: #1f2937;
-            padding: 12px 0;
-            border-bottom: 3px solid #009F4B;
-            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 3px solid var(--groen);
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: baseline;
+            gap: 10px;
         }
-        
-        .supplier-count {
-            font-size: 14px;
-            color: #6b7280;
-            font-weight: 400;
+        .groep-count { font-size: 14px; color: var(--grijs); font-weight: 400; white-space: nowrap; }
+        .sub-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--grijs);
+            margin: 16px 0 8px;
+            display: flex;
+            justify-content: space-between;
         }
-        
+
         .product-item {
             display: flex;
             align-items: center;
-            padding: 16px;
+            gap: 14px;
+            padding: 14px 16px;
             margin-bottom: 10px;
             background: #f9fafb;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 2px solid transparent;
-            transition: all 0.3s;
+            transition: background .2s, border-color .2s;
         }
-        
-        .product-item.has-count {
-            background: #e6f7ed;
-            border-color: #009F4B;
-        }
-        
-        .product-item.needs-order {
-            background: #fff3cd;
-            border-color: #ffc107;
-        }
-        
-        .order-badge {
-            background: #ffc107 !important;
-            color: #000 !important;
-            font-weight: 500;
-        }
-        
-        .product-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .product-name {
-            font-size: 15px;
-            font-weight: 500;
-            color: #1f2937;
-            margin-bottom: 4px;
-        }
-        
-        .product-details {
-            font-size: 13px;
-            color: #6b7280;
-        }
-        
-        .product-meta {
-            display: flex;
-            gap: 8px;
-            margin-top: 4px;
-        }
-        
+        .product-item.has-count { background: var(--groen-licht); border-color: var(--groen); }
+        .product-item.needs-order { background: var(--geel-licht); border-color: var(--geel); }
+        .product-item.has-signal { background: #fff7ed; border-color: #fb923c; }
+
+        .product-info { flex: 1; min-width: 0; }
+        .product-name { font-size: 16px; font-weight: 500; color: var(--tekst); line-height: 1.3; }
+        .product-details { font-size: 13px; color: var(--grijs); margin-top: 3px; }
+        .product-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+
         .meta-badge {
             display: inline-block;
             padding: 2px 8px;
             background: #e5e7eb;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 12px;
             color: #4b5563;
+            line-height: 1.5;
         }
-        
-        .counter {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
+        .meta-badge.order { background: var(--geel); color: #000; font-weight: 500; }
+        .meta-badge.niet-geteld { background: var(--rood-licht); color: var(--rood); }
+        .meta-badge.vraag { background: #eef2ff; color: #3730a3; }
+        .meta-badge.signaal { background: #ffedd5; color: #9a3412; font-weight: 500; }
+        .meta-badge.vast { background: #e0f2fe; color: #075985; }
+        .meta-badge.alt { background: #f3e8ff; color: #6b21a8; }
+
+        .counter { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         .counter-btn {
-            width: 44px;
-            height: 44px;
-            border: 2px solid #e0e0e0;
+            width: 52px;
+            height: 52px;
+            border: 2px solid var(--rand);
             background: white;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 26px;
             font-weight: 500;
-            color: #009F4B;
-            transition: all 0.3s;
+            font-family: inherit;
+            color: var(--groen);
             display: flex;
             align-items: center;
             justify-content: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
         }
-        
-        .counter-btn:hover {
-            background: #009F4B;
-            color: white;
-            border-color: #009F4B;
-            transform: scale(1.05);
-        }
-        
-        .counter-btn:active {
-            transform: scale(0.95);
-        }
-        
+        .counter-btn:active { background: var(--groen); color: white; border-color: var(--groen); transform: scale(0.96); }
+        @media (hover: hover) { .counter-btn:hover { border-color: var(--groen); } }
+
         .counter-value {
-            min-width: 60px;
+            width: 76px;
+            height: 52px;
             text-align: center;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 500;
-            color: #1f2937;
+            font-family: inherit;
+            color: var(--tekst);
+            border: 2px solid var(--rand);
+            border-radius: 10px;
+            background: white;
+            -moz-appearance: textfield;
         }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6b7280;
+        .counter-value::placeholder { color: #c0c4cc; }
+        .counter-value:focus { outline: none; border-color: var(--groen); }
+        .counter-value::-webkit-outer-spin-button,
+        .counter-value::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--grijs); }
+        .empty-state h3 { font-weight: 500; margin-bottom: 6px; color: var(--tekst); }
+
+        /* ---------- uitleg */
+        .uitleg { margin: 0 30px 26px; padding: 14px 16px; background: #f9fafb; border: 1px solid var(--rand); border-radius: 10px; font-size: 14px; color: #374151; line-height: 1.5; }
+        .uitleg summary { cursor: pointer; font-weight: 500; color: var(--tekst); }
+        .uitleg p { margin-top: 10px; }
+        .uitleg ul { margin: 8px 0 0 18px; }
+        .uitleg li { margin: 4px 0; }
+
+        /* ---------- actiebalk onderin */
+        .actionbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 30;
+            background: rgba(255,255,255,0.97);
+            border-top: 1px solid var(--rand);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+            padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
         }
-        
-        .empty-state svg {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
+        .actionbar-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 10px; }
+        .reset-btn {
+            padding: 14px 18px;
+            background: white;
+            color: #dc2626;
+            border: 2px solid #fecaca;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            font-family: inherit;
         }
-        
+        .export-btn {
+            flex: 1;
+            padding: 14px 20px;
+            background: var(--groen);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            font-family: inherit;
+            transition: background .2s;
+        }
+        @media (hover: hover) { .export-btn:hover { background: var(--groen-donker); } }
+        .export-btn:disabled { background: #d1d5db; color: #374151; cursor: not-allowed; }
+
         @media (max-width: 768px) {
-            .controls {
-                flex-direction: column;
-            }
-            
-            .filter-group {
-                width: 100%;
-                overflow-x: auto;
-            }
-            
-            .stats {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .product-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-            
-            .counter {
-                align-self: flex-end;
-            }
+            body { padding: 0 0 100px; }
+            .container { border-radius: 0; box-shadow: none; }
+            .header { border-radius: 0; padding: 18px 16px; }
+            .header h1 { font-size: 22px; margin-bottom: 6px; }
+            .header p { font-size: 13px; }
+            .toolbar { padding: 10px 12px; gap: 8px; }
+            .filter-group { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin: 0 -12px; padding: 0 12px 2px; }
+            .filter-group::-webkit-scrollbar { display: none; }
+            .view-toggle button { padding: 0 10px; font-size: 13px; }
+            .stats { padding: 12px 16px; gap: 14px; grid-template-columns: 1.5fr 1fr 1fr; }
+            .stat-label { font-size: 11px; }
+            .stat-value { font-size: 20px; }
+            .stat-value .of { font-size: 15px; }
+            .products { padding: 0 12px 16px; }
+            .groep-header { font-size: 17px; }
+            .product-item { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
+            .counter { align-self: flex-end; }
+            .uitleg { margin: 0 12px 20px; }
+        }
+        @media (max-width: 480px) {
+            .vt-tekst { display: none; }
+            .view-toggle button { padding: 0 13px; font-size: 17px; }
+            .meta-badge.cat { display: none; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <header class="header">
             <h1>SLA Keuken Orderpick Voorraad</h1>
-            <p>Tel eenvoudig je voorraad en exporteer naar Excel voor UDEA bestelling</p>
-        </div>
-        
-        <div class="controls">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 Zoek product, artikelnummer of leverancier...">
+            <p>Tel na de orderpick en verzend de bestelling · PAR/MIN versie 28-09-2026</p>
+            <div class="tel-info" id="telInfo"></div>
+        </header>
+
+        <div class="toolbar">
+            <div class="search-row">
+                <input type="search" id="searchInput" placeholder="🔍 Zoek product, artikelnummer of leverancier…" autocomplete="off">
+                <div class="view-toggle" role="group" aria-label="Groepeer op">
+                    <button type="button" data-view="locatie" title="Groepeer per locatie (looproute)">📍<span class="vt-tekst"> Locatie</span></button>
+                    <button type="button" data-view="leverancier" title="Groepeer per leverancier">🚚<span class="vt-tekst"> Leverancier</span></button>
+                </div>
             </div>
-            
-            <div class="filter-group">
+            <div class="filter-group" id="filterGroup">
                 <button class="filter-btn active" data-filter="all">Alle</button>
+                <button class="filter-btn status" data-filter="nietgeteld">Niet geteld<span class="chip-count" id="cntNietGeteld">0</span></button>
+                <button class="filter-btn status" data-filter="bestellen">Bestellen &amp; let op<span class="chip-count" id="cntBestellen">0</span></button>
                 <button class="filter-btn" data-filter="UDEA">UDEA</button>
                 <button class="filter-btn" data-filter="POSTUMA">Postuma</button>
                 <button class="filter-btn" data-filter="VHC">VHC</button>
                 <button class="filter-btn" data-filter="BAIN BREWING">Bain Brewing</button>
+                <button class="filter-btn" data-filter="JET DRINKS">Jet Drinks</button>
+                <button class="filter-btn" data-filter="STEANS">Steans</button>
+                <button class="filter-btn filter-week" data-filter="JK VERPAKKINGEN" id="jkFilterBtn">JK · wo</button>
                 <button class="filter-btn" data-filter="other">Overig</button>
             </div>
-            
-            <button class="reset-btn" id="resetBtn" onclick="doReset()">Reset</button>
-            <button class="export-btn" id="exportBtn">📧 Verzend Bestelling</button>
         </div>
-        
+
         <div class="stats">
             <div class="stat">
-                <div class="stat-label">Totaal producten</div>
-                <div class="stat-value" id="totalProducts">0</div>
-            </div>
-            <div class="stat">
-                <div class="stat-label">Getelde producten</div>
-                <div class="stat-value" id="countedProducts">0</div>
-            </div>
-            <div class="stat">
-                <div class="stat-label">Totaal items</div>
-                <div class="stat-value" id="totalItems">0</div>
+                <div class="stat-label">Geteld</div>
+                <div class="stat-value"><span id="countedProducts">0</span><span class="of"> / <span id="totalProducts">0</span></span></div>
+                <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
             </div>
             <div class="stat">
                 <div class="stat-label">Te bestellen</div>
-                <div class="stat-value" id="needsOrderProducts" style="color: #ffc107;">0</div>
+                <div class="stat-value warn" id="needsOrderProducts">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Let op</div>
+                <div class="stat-value alert" id="signalProducts">0</div>
             </div>
         </div>
-        
-        <div class="products" id="productsContainer"></div>
+
+        <main class="products" id="productsContainer"></main>
+
+        <details class="uitleg">
+            <summary>ℹ️ Hoe komen PAR en MIN tot stand?</summary>
+            <p>Bron: SLAbase bestel-overzicht van 28-09-2026 — winkelbestellingen 31-08 t/m 25-09-2026 (12 besteldagen, recente weken wegen zwaarder). „Vraag” op een product = wat de winkels gemiddeld (±) en maximaal bestelden voor de volgende productiedag.</p>
+            <ul>
+                <li><b>Bestellen:</b> is de voorraad gelijk aan of lager dan MIN, dan vult de app aan tot PAR (afgerond op de besteleenheid).</li>
+                <li><b>Kwetsbaar</b> (spinazie, romaine, taugé, avocado): per productiedag. MIN = drukste dag van de afgelopen 4 weken, PAR = MIN + 10%.</li>
+                <li><b>Vers</b> (tomaten, komkommer, feta, melk, coco, ginger shot): MIN = drukste productiedag, PAR = MIN + 20%.</li>
+                <li><b>Houdbaar</b> (appel, citrus, wortel, bieten, selderij, dranken, mais, diepvries): MIN = drukste productiedag, PAR = MIN + 50%.</li>
+                <li><b>JK (woensdag):</b> MIN ≈ een normale week, PAR ≈ twee weken en minstens de grootste weekbestelling. Alleen winkelvraag — eigen keukenverbruik zit er niet in.</li>
+                <li><b>Vaste afspraken blijven:</b> koffie, koriander, gember, perssinaasappel, honing, spirulina, thee, hennepzaad, edamame (1× per 2 weken), bananen, brood.</li>
+                <li><b>Alleen tellen + ⚠️ signaal:</b> granaatappel (vaste levering), eieren en Dateables. Zit de voorraad (plus vaste levering) onder de piek, dan staat dat in de mail onder „LET OP”. Pita, matcha en zalm worden alleen geteld.</li>
+            </ul>
+        </details>
+    </div>
+
+    <div class="actionbar">
+        <div class="actionbar-inner">
+            <button class="reset-btn" id="resetBtn" type="button">Reset</button>
+            <button class="export-btn" id="exportBtn" type="button">📧 Verzend bestelling</button>
+        </div>
     </div>
 
     <script>
+        const PARMIN_VERSIE = '28-09-2026';
+
+        // PAR/MIN in tel-eenheden (of in PAR-eenheden bij telFactor). vraag = winkelbestellingen uit SLAbase
+        // per productiedag [gemiddeld (gewogen), maximum], in dezelfde eenheid als PAR/MIN; vraag.wk = per week (JK).
+        // signaal: true = app bestelt niet zelf, maar geeft een waarschuwing als voorraad (+ vasteLevering) < piek.
+        // alt = tweede leverancier (Rude Health: Udea per tray, Jet Drinks per pallet).
         const products = [
-            // AGF - UDEA ORDERPICK CEL (met artikelnummers)
-            { id: 'udea-592', artikel: '592', naam: 'BANAAN per doos', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 3, min: 2 },
-            { id: 'udea-77', artikel: '77', naam: 'BLEEKSELDERIJ per krat (10x1 stuks)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 12, min: 8 },
-            { id: 'udea-192', artikel: '192', naam: 'CHERRY ROMATOMATEN per krat (3x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 20, min: 16 },
-            { id: 'udea-17021', artikel: '17021', naam: 'APPEL KLASSE 2 SAP per krat (11x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 12, min: 8 },
-            { id: 'udea-593', artikel: '593', naam: 'CITROEN (Primofiore) maat 4/5 (6x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 6, min: 4 },
-            
-            // AGF - UDEA ORDERPICK CEL (zonder artikelnummers)
-            { id: 'udea-gember', artikel: '17159', naam: 'GEMBER bulk 2kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 8, min: 4, specialOrder: 2 },
-            { id: 'udea-komkommers', artikel: '162', naam: 'KOMKOMMERS KLASSE 2 1 krat', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 14, min: 10 },
-            { id: 'udea-limoenen', artikel: '617', naam: 'LIMOENEN (Limes Tahiti) 4 kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 6, min: 4 },
-            { id: 'udea-perssinaas', artikel: '579', naam: 'PERSSINAASAPPELS (verpakt) per net', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 12, min: 2, specialOrder: 1 },
-            { id: 'udea-romatomaten', artikel: '184', naam: 'TOMAAT ROMA (47-57) per krat (3x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 16, min: 14 },
-            { id: 'udea-waspeen', artikel: '293', naam: 'WINTERPEEN (gewassen) per krat (10x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 12, min: 6 },
-            
-            // DKW - UDEA ORDERPICK CEL
-            { id: 'udea-feta', artikel: '23941', naam: 'FETA BLOKJES 2 kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 20, min: 12 },
-            
-            // DKW - UDEA MAGAZIJN (met artikelnummers)
-            { id: 'udea-1120', artikel: '1120', naam: 'MELK vers per liter (1x1 liter)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 24, min: 12 },
-            { id: 'udea-5009384', artikel: '5009384', naam: 'BLOEMENHONING knijpfles (1x500 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 12, min: 6 },
-            { id: 'udea-5011082', artikel: '5011082', naam: 'GEPELD HENNEPZAAD (8x500 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 10, min: 4 },
-            { id: 'udea-91820', artikel: '91820', naam: 'MAIS per pak (6x340 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 25, min: 12 },
-            
-            // DKW - UDEA MAGAZIJN (zonder artikelnummers)
-            { id: 'udea-amandeldrink', artikel: '5009329', naam: 'AMANDELDRINK (Rude Health) 1 liter', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 20, min: 6 },
-            { id: 'udea-kokosdrink', artikel: '5009633', naam: 'KOKOSDRINK (Rude Health) 1 liter', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 20, min: 6 },
-            { id: 'udea-appelsap', artikel: '94762', naam: 'APPELSAP natuurtroebel krat (12x200ml)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 12, min: 6 },
-            { id: 'udea-rodebiet', artikel: '11960', naam: 'GEKOOKTE RODE BIET vacuüm (1x500 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 20, min: 5 },
-            { id: 'udea-iceatea', artikel: '5006971', naam: 'ICEA TEA GREEN (ChariTea) 12x330ml', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 10, min: 6 },
-            { id: 'udea-spirulina', artikel: '5016195', naam: 'RAW SPIRULINA POEDER per zak (bestel per 6 voor SVE korting)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 12, min: 6 },
-            { id: 'udea-earlgrey', artikel: '5014500', naam: 'Simon Levelt Thee - Earl Grey (6x90gr)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 4, min: 2 },
-            { id: 'udea-jasmin', artikel: '5014501', naam: 'Simon Levelt Thee - Jasmin Green (6x90gr)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 4, min: 2 },
-            { id: 'udea-rooibos', artikel: '5014197', naam: 'Simon Levelt Thee - Orange Rooibos (6x110gr)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 4, min: 2 },
-            
-            // DKW - UDEA VRIEZER
-            { id: 'udea-35607', artikel: '35607', naam: 'BESSENMIX (4x2,5 kg)', leverancier: 'UDEA', locatie: 'VRIEZER', categorie: 'DKW', par: 2, min: 1 },
-            { id: 'udea-mango', artikel: '46727', naam: 'MANGO BLOKJES (Frio Food 1x10 kg)', leverancier: 'UDEA', locatie: 'VRIEZER', categorie: 'DKW', par: 2, min: 1 },
-            
-            // BROOD - VHC/TSANTOS VRIEZER
-            { id: 'vhc-brood', artikel: '', naam: 'BROOD MOLENSTEENBREEK', leverancier: 'VHC', locatie: 'VRIEZER', categorie: 'BROOD', par: 12, min: 8 },
+            // ── AGF · UDEA · ORDERPICK CEL
+            { id: 'udea-77', artikel: '77', naam: 'BLEEKSELDERIJ per krat (12x1 stuks)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 8, min: 5, slabase: '8010', vraag: { di: [2.7, 5], do: [1.7, 3], za: [3.8, 5] } }, // SLAbase 8010: dagpiek 5 (DI 5, DO 3, ZA 5) x 1.5
+            { id: 'udea-196', artikel: '196', naam: 'CHERRY TOMAAT TROS per krat (3x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 21, min: 17, slabase: '8007', vraag: { di: [13.4, 16], do: [10.4, 11], za: [15.7, 17] } }, // SLAbase 8007: dagpiek 17 (DI 16, DO 11, ZA 17) x 1.2 | verhuisd van Postuma (snoep cherrypruim 4 kg) naar Udea 196 per 28-09-2026; SLAbase-eenheid staat nog op kistje (4 kg)
+            { id: 'udea-17021', artikel: '17021', naam: 'APPEL KLASSE 2 SAP per krat (11x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 12, min: 8, slabase: '8013', vraag: { di: [6.8, 8], do: [3.5, 5], za: [5.9, 7] } }, // SLAbase 8013: dagpiek 8 (DI 8, DO 5, ZA 7) x 1.5
+            { id: 'udea-593', artikel: '593', naam: 'CITROEN (Eureka 4/5) omgepakt per 3 kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 11, min: 7, bestelFactor: 5, bestelEenheid: 'doos 15 kg', slabase: '8017', vraag: { di: [4.2, 6], do: [3.5, 4], za: [5.2, 7] } }, // SLAbase 8017: dagpiek 7 (DI 6, DO 4, ZA 7) x 1.5 | tel per 3 kg, UDEA-doos = 15 kg (factor 5)
+            { id: 'udea-gember', artikel: '17159', naam: 'GEMBER omgepakt per 2 kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 8, min: 6, bestelFactor: 3.75, bestelEenheid: 'doos 7,5 kg', slabase: '8015', vraag: { di: [2.6, 4], do: [2.9, 4], za: [3.1, 6] } }, // SLAbase 8015: DI gem 2.6 / max 4, DO gem 2.9 / max 4, ZA gem 3.1 / max 6 | tel per 2 kg, UDEA-doos = 7,5 kg (factuur 26-09); gember gaat ook naar productie (dressing) -> PAR niet verlaagd, MIN naar dagpiek 6
+            { id: 'udea-komkommers', artikel: '162', naam: 'KOMKOMMERS KLASSE 2 per krat (10x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 12, min: 10, slabase: '8005', vraag: { di: [6.5, 9], do: [7.2, 9], za: [7.9, 10] } }, // SLAbase 8005: dagpiek 10 (DI 9, DO 9, ZA 10) x 1.2
+            { id: 'udea-limoenen', artikel: '617', naam: 'LIMOENEN (Limes Tahiti) krat 4 kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 8, min: 5, slabase: '8016', vraag: { di: [3.2, 4], do: [2, 4], za: [3.5, 5] } }, // SLAbase 8016: dagpiek 5 (DI 4, DO 4, ZA 5) x 1.5
+            { id: 'udea-perssinaas', artikel: '579', naam: 'PERSSINAASAPPELS (verpakt) per net', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 10, min: 4, bestelFactor: 10, bestelEenheid: 'krat (10 netten)', specialOrder: 1, slabase: '8014', vraag: { di: [3.6, 4], do: [3.1, 4], za: [3.2, 4] } }, // SLAbase 8014: DI gem 3.6 / max 4, DO gem 3.1 / max 4, ZA gem 3.2 / max 4 | tel per net, bestel 1 krat van 10 netten; MIN 4 = dagpiek
+            { id: 'udea-214', artikel: '214', naam: 'VLEESTOMAAT per krat (3x1 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 16, min: 13, slabase: '8004', vraag: { di: [7.8, 10], do: [9.4, 11], za: [12.1, 13] } }, // SLAbase 8004: dagpiek 13 (DI 10, DO 11, ZA 13) x 1.2 | vervangt SOEPTOMATEN (201) per 28-09-2026; SLAbase-artikel 8004 "Roma tomaat"
+            { id: 'udea-winterpeen', artikel: '6003076', naam: 'WINTERPEEN (gewassen) omgepakt per 5 kilo', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 14, min: 9, telEenheid: '5 kilo', bestelFactor: 2, bestelEenheid: 'krat (10 kilo)', slabase: '8009', vraag: { di: [6.3, 9], do: [4.8, 7], za: [6.6, 8] } }, // SLAbase 8009: dagpiek 9 (DI 9, DO 7, ZA 8) x 1.5 | vervangt WASPEEN (269) per 28-09-2026: tel per 5 kg, UDEA-krat = 10 kg (factor 2)
+            { id: 'udea-277', artikel: '277', naam: 'GELE BIET per krat (5 kilo)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 9, min: 6, slabase: '8008', vraag: { di: [3.5, 5], do: [4.2, 5], za: [4.7, 6] } }, // SLAbase 8008: dagpiek 6 (DI 5, DO 5, ZA 6) x 1.5 | verhuisd van Postuma naar Udea 277 per 28-09-2026
+
+            // ── DKW · UDEA · ORDERPICK CEL
+            { id: 'udea-feta', artikel: '23941', naam: 'FETA BLOKJES emmer 2 kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 28, min: 23, slabase: '4013', vraag: { di: [9.7, 14], do: [10.4, 12], za: [19.8, 23] } }, // SLAbase 4013: dagpiek 23 (DI 14, DO 12, ZA 23) x 1.2
+            { id: 'udea-cocodelight', artikel: '6001863', naam: 'COCO DAILY DELIGHT VANILLE bak (350 ml)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 11, min: 9, slabase: '6009', vraag: { di: [4.1, 9], do: [3.1, 5], za: [3.3, 7] } }, // SLAbase 6009: dagpiek 9 (DI 9, DO 5, ZA 7) x 1.2 | Udea-artikelnummer 6001863 (stond op 9700 -> werkte niet in de Udea-upload)
+
+            // ── DKW · UDEA · MAGAZIJN
+            { id: 'udea-1120', artikel: '1120', naam: 'MELK vers per liter (1x1 liter)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 24, min: 18, bestelVeelvoud: 6, slabase: '9071', vraag: { di: [13.1, 18], do: [13.3, 18], za: [10.2, 14] } }, // SLAbase 9071: dagpiek 18 (DI 18, DO 18, ZA 14) x 1.2 | bestel altijd per 6, naar boven afgerond
+            { id: 'udea-5009384', artikel: '5009384', naam: 'BLOEMENHONING knijpfles (1x500 gram) (bestel per 6 voor SVE korting)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 6, min: 2, specialOrder: 6, slabase: '9026', vraag: { do: [1, 1] } }, // SLAbase 9026: DO gem 1 / max 1
+            { id: 'udea-5011082', artikel: '5011082', naam: 'GEPELD HENNEPZAAD (8x500 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 3, min: 2 }, // SLAbase 9028 is zak 250 g -> eenheid wijkt af, waarden ongewijzigd
+            { id: 'udea-91820', artikel: '91820', naam: 'MAIS per pak (6x340 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 21, min: 14, slabase: '9017', vraag: { di: [10.6, 13], do: [7.5, 10], za: [12, 14] } }, // SLAbase 9017: dagpiek 14 (DI 13, DO 10, ZA 14) x 1.5
+            { id: 'udea-amandeldrink', artikel: '5009329', naam: 'AMANDELDRINK (Rude Health) pak 1 liter', leverancier: 'UDEA', alt: 'JET DRINKS', altNote: 'Jet Drinks per pallet', locatie: 'MAGAZIJN', categorie: 'DKW', par: 36, min: 24, telEenheid: 'pak (1 liter)', bestelFactor: 6, bestelEenheid: 'tray (6x1 liter)', slabase: '9065', vraag: { di: [9, 12], do: [21, 24], za: [6.6, 12] } }, // SLAbase 9065: dagpiek 24 (DI 12, DO 24, ZA 12) x 1.5 | per 28-09-2026: Udea per tray (6x1 L), Jet Drinks per pallet; PAR/MIN in liters (pakken)
+            { id: 'udea-kokosdrink', artikel: '5009633', naam: 'KOKOSDRINK (Rude Health) pak 1 liter', leverancier: 'UDEA', alt: 'JET DRINKS', altNote: 'Jet Drinks per pallet', locatie: 'MAGAZIJN', categorie: 'DKW', par: 48, min: 30, telEenheid: 'pak (1 liter)', bestelFactor: 6, bestelEenheid: 'tray (6x1 liter)', slabase: '9064', vraag: { di: [12.6, 24], do: [21.6, 30], za: [18, 18] } }, // SLAbase 9064: dagpiek 30 (DI 24, DO 30, ZA 18) x 1.5 | per 28-09-2026: Udea per tray (6x1 L), Jet Drinks per pallet; PAR/MIN in liters (pakken)
+
+            // ── DKW · JET DRINKS · MAGAZIJN
+            { id: 'jet-kokoswater', artikel: '9050', naam: 'KOKOSWATER RAW per 8 flesjes', leverancier: 'JET DRINKS', locatie: 'MAGAZIJN', categorie: 'DKW', par: 40, min: 16 }, // Jet Drinks per pallet; MIN 8 -> 16: dekte de donderdagpiek niet (SLAbase 9050: max 10 x 12 flesjes/week). Eenheid 8 vs 12 flesjes checken
+
+            // ── DKW · UDEA · MAGAZIJN
+            { id: 'udea-appelsap', artikel: '94762', naam: 'APPELSAP natuurtroebel krat (12x200ml)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 15, min: 10, slabase: '9056', vraag: { do: [6.5, 10] } }, // SLAbase 9056: dagpiek 10 (DO 10) x 1.5
+            { id: 'udea-rodebiet', artikel: '11960', naam: 'GEKOOKTE RODE BIET vacuüm (1x500 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 11, min: 7, slabase: '8011', vraag: { di: [1.3, 2], do: [4.6, 7], za: [4, 7] } }, // SLAbase 8011: dagpiek 7 (DI 2, DO 7, ZA 7) x 1.5
+            { id: 'udea-iceatea', artikel: '5006971', naam: 'ICE TEA GREEN (ChariTea) tray 12x330ml', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 17, min: 11, slabase: '9057', vraag: { di: [1, 1], do: [8.7, 11] } }, // SLAbase 9057: dagpiek 11 (DI 1, DO 11) x 1.5
+            { id: 'udea-spirulina', artikel: '5016195', naam: 'RAW SPIRULINA POEDER per zak (bestel per 6 voor SVE korting)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 6, min: 2, specialOrder: 6, slabase: '9008', vraag: { di: [2, 2], do: [1, 1], za: [1, 1] } }, // SLAbase 9008: DI gem 2 / max 2, DO gem 1 / max 1, ZA gem 1 / max 1
+            { id: 'udea-earlgrey', artikel: '5014500', naam: 'Simon Levelt Thee - Earl Grey (6x90gr)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 2, min: 1, slabase: '9036', vraag: { di: [1, 1], za: [1, 1] } }, // SLAbase 9036: DI gem 1 / max 1, ZA gem 1 / max 1
+            { id: 'udea-jasmin', artikel: '5014501', naam: 'Simon Levelt Thee - Jasmin Green (6x90gr)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 4, min: 2, slabase: '9037', vraag: { do: [1.7, 2], za: [1, 1] } }, // SLAbase 9037: DO gem 1.7 / max 2, ZA gem 1 / max 1
+            { id: 'udea-rooibos', artikel: '5014197', naam: 'Simon Levelt Thee - Orange Rooibos (6x110gr)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 4, min: 2, slabase: '9035', vraag: { di: [1, 1], do: [1, 1], za: [1, 1] } }, // SLAbase 9035: DI gem 1 / max 1, DO gem 1 / max 1, ZA gem 1 / max 1
+
+            // ── DKW · UDEA · VRIEZER
+            { id: 'udea-35607', artikel: '35607', naam: 'BESSENMIX doos (4x3 kg)', leverancier: 'UDEA', locatie: 'VRIEZER', categorie: 'DKW', par: 2, min: 1, slabase: '0003', vraag: { di: [0.4, 0.5], do: [0.2, 0.2], za: [0.3, 0.5] } }, // SLAbase 0003: dagpiek 0.5 (DI 0.5, DO 0.2, ZA 0.5) x 1.5 | tel en bestel per doos; Udea levert nu 4x3 kg (factuur 26-09), SLAbase-eenheid zak 2,5 kg
+            { id: 'udea-mango', artikel: '1267', naam: 'MANGO BLOKJES doos (10x300 gram) — uitgifte per zak 300 gr', leverancier: 'UDEA', locatie: 'VRIEZER', categorie: 'DKW', par: 3, min: 2, slabase: '0004', vraag: { di: [1, 1.6], do: [0.6, 0.8], za: [0.4, 0.7] } }, // SLAbase 0004: dagpiek 1.6 (DI 1.6, DO 0.8, ZA 0.7) x 1.5 | tel en bestel per doos, uitgifte aan winkels per zak 300 gr
+
+            // ── DKW · DUN YONG · VRIEZER
+            { id: 'udea-edamame', artikel: '', naam: 'EDAMAME DIEPVRIES zak (400 gram)', leverancier: 'DUN YONG', locatie: 'VRIEZER', categorie: 'DKW', par: 300, min: 100, telFactor: 20, telEenheid: 'doos (20 zakken)', bestelFactor: 20, bestelEenheid: 'doos (20 zakken)', slabase: '0001', vraag: { di: [42.5, 48], do: [44.5, 50], za: [62.4, 65] } }, // SLAbase 0001: DI gem 42.5 / max 48, DO gem 44.5 / max 50, ZA gem 62.4 / max 65 | bestelritme 1x per 2 weken (per Jop 14-07). PAR 300 = ~2 wkn vraag (gem 149 zakken/wk t/m 25-09, was 109), MIN 100 = ~4-5 dagen. PAR/MIN in zakken
+
+            // ── BROOD · VANMENNO · VRIEZER
+            { id: 'vhc-brood', artikel: '', naam: 'DESEMBROOD WIT streng per 8 (10 strengen per doos)', leverancier: 'VANMENNO', locatie: 'VRIEZER', categorie: 'BROOD', par: 20, min: 8 }, // SLAbase 0007 is doos (80 x 50 g): max 6/dag, 10/week -> MIN 8 dekt dat als de telling per doos is
+
+            // ── BROOD · TSANTOS · VRIEZER
             { id: 'tsantos-pita', artikel: '', naam: 'PITA BROOD', leverancier: 'TSANTOS', locatie: 'VRIEZER', categorie: 'BROOD', par: 0, min: 0 },
-            
-            // AGF - POSTUMA ORDERPICK CEL
-            { id: 'postuma-spinazie', artikel: '', naam: 'SPINAZIE krat (8x300 gram)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0 },
-            { id: 'postuma-romaine', artikel: '', naam: 'ROMAINE KRAT 10 stuks', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0 },
-            { id: 'postuma-avocado', artikel: '', naam: 'AVOCADO 18 stuks per doos', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0 },
-            { id: 'postuma-koriander', artikel: '', naam: 'KORIANDER TEMPEX 20 Bos', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0 },
-            { id: 'postuma-tauge', artikel: '', naam: 'TAUGE 1 zak', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0 },
-            { id: 'postuma-granaat', artikel: '', naam: 'GRANAATAPPELPIT 1 bak', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0 },
-            { id: 'postuma-gelebiet', artikel: '', naam: 'GELE BIET 5kg', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0 },
-            
-            // DKW - VHC/Kraats/Solstice MAGAZIJN
-            { id: 'vhc-olijfolie', artikel: '', naam: 'OLIJFOLIE FLES', leverancier: 'VHC', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0 },
-            { id: 'kraats-eieren', artikel: '', naam: 'EIEREN (doos) 180 stuks - kraats', leverancier: 'Kraats', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0 },
+
+            // ── AGF · POSTUMA · ORDERPICK CEL
+            { id: 'postuma-bananen', artikel: '', naam: 'Bio Bananen kleur 4.5/5 doos (18kg)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 5, min: 3 }, // SLAbase 8012 is bak (3 kg), max 16 bakken/week (~3 dozen); bananen gaan ook naar productie -> ongewijzigd
+            { id: 'postuma-spinazie', artikel: '', naam: 'SPINAZIE krat (8x300 gram)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 31, min: 28, dagPar: { di: { par: 30, min: 27 }, do: { par: 25, min: 22 }, za: { par: 31, min: 28 } }, slabase: '8001', vraag: { di: [19, 27], do: [17.7, 22], za: [26.1, 28] } }, // SLAbase 8001: DI gem 19 / max 27, DO gem 17.7 / max 22, ZA gem 26.1 / max 28
+            { id: 'postuma-romaine', artikel: '', naam: 'ROMAINE KRAT 10 stuks', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 42, min: 38, dagPar: { di: { par: 38, min: 34 }, do: { par: 33, min: 30 }, za: { par: 42, min: 38 } }, slabase: '8002', vraag: { di: [26.1, 34], do: [24.8, 30], za: [37.1, 38] } }, // SLAbase 8002: DI gem 26.1 / max 34, DO gem 24.8 / max 30, ZA gem 37.1 / max 38
+            { id: 'postuma-avocado', artikel: '', naam: 'AVOCADO 18 stuks per doos', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 21, min: 19, dagPar: { di: { par: 21, min: 19 }, do: { par: 16, min: 14 }, za: { par: 21, min: 19 } }, slabase: '8006', vraag: { di: [17, 19], do: [11.4, 14], za: [17, 19] } }, // SLAbase 8006: DI gem 17 / max 19, DO gem 11.4 / max 14, ZA gem 17 / max 19
+            { id: 'postuma-koriander', artikel: '', naam: 'KORIANDER doos (20 bos)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 2, min: 1 }, // per Jop 03-07: bij <=1 doos aanvullen tot 2 (SLAbase 8018: max 16 bos/dag < 1 doos)
+            { id: 'postuma-tauge', artikel: '', naam: 'TAUGE per zakje', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 97, min: 88, dagPar: { di: { par: 82, min: 74 }, do: { par: 69, min: 62 }, za: { par: 97, min: 88 } }, telEenheid: 'zakje', bestelFactor: 8, bestelEenheid: 'doos (8 zakjes)', slabase: '8019', vraag: { di: [67.3, 74], do: [54.7, 62], za: [84.3, 88] } }, // SLAbase 8019: DI gem 67.3 / max 74, DO gem 54.7 / max 62, ZA gem 84.3 / max 88 | tel per zakje, bestel per doos van 8; PAR/MIN in zakjes (SLAbase bakje 100 g = 1 zakje)
+            { id: 'postuma-granaat', artikel: '', naam: 'GRANAATAPPELPIT doos (6 bakjes à 100 gr)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0, vasteLevering: { di: 20, do: 17, za: 24 }, slabase: '8029', vraag: { di: [19.2, 23], do: [16.4, 19], za: [22.1, 26] }, signaal: true }, // SLAbase 8029: DI gem 19.2 / max 23, DO gem 16.4 / max 19, ZA gem 22.1 / max 26 | VASTE LEVERING Postuma: di 20, do 17, za 24 dozen — app bestelt niet, geeft wel signaal als voorraad + vaste levering onder de dagpiek zit
+
+            // ── DKW · VHC · MAGAZIJN
+            { id: 'vhc-olijfolie', artikel: '', naam: 'OLIJFOLIE FLES', leverancier: 'VHC', locatie: 'MAGAZIJN', categorie: 'DKW', par: 5, min: 3, slabase: '9022', vraag: { di: [1, 1], do: [2, 3], za: [1, 1] } }, // SLAbase 9022: dagpiek 3 (DI 1, DO 3, ZA 1) x 1.5
+            { id: 'vhc-mangopuree', artikel: '9703', naam: 'MANGO PUREE ONGEZOET bak (1 kg)', leverancier: 'VHC', locatie: 'MAGAZIJN', categorie: 'DKW', par: 5, min: 3, slabase: '6010', vraag: { di: [1.2, 2], do: [1, 1], za: [1.4, 3] } }, // SLAbase 6010: dagpiek 3 (DI 2, DO 1, ZA 3) x 1.5 | ongezoet, geen diepvries
+
+            // ── DKW · Kraats · MAGAZIJN
+            { id: 'kraats-eieren', artikel: '', naam: 'EIEREN (doos) 180 stuks - kraats', leverancier: 'Kraats', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0, slabase: '9020', vraag: { di: [3.1, 4], do: [3.4, 5], za: [4.5, 7] }, signaal: true }, // SLAbase 9020: DI gem 3.1 / max 4, DO gem 3.4 / max 5, ZA gem 4.5 / max 7
+
+            // ── DKW · SOLSTICE · MAGAZIJN
             { id: 'solstice-matcha', artikel: '', naam: 'MATCHA', leverancier: 'SOLSTICE', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0 },
-            
-            // DKW - BAIN BREWING MAGAZIJN
-            { id: 'bain-gingershot', artikel: '', naam: 'GINGER SHOT doos (15 shots)', leverancier: 'BAIN BREWING', locatie: 'MAGAZIJN', categorie: 'DKW', par: 8, min: 2 },
-            { id: 'bain-kombucha', artikel: '', naam: 'KOMBUCHA doos (24 flessen)', leverancier: 'BAIN BREWING', locatie: 'MAGAZIJN', categorie: 'DKW', par: 12, min: 4 },
-            
-            // VIS / ZOET
+
+            // ── DKW · BAIN BREWING · MAGAZIJN
+            { id: 'bain-gingershot', artikel: '', naam: 'GINGER SHOT doos (15 shots)', leverancier: 'BAIN BREWING', locatie: 'MAGAZIJN', categorie: 'DKW', par: 8, min: 6, slabase: '9076', vraag: { do: [4.4, 6] } }, // SLAbase 9076: dagpiek 6 (DO 6) x 1.2
+            { id: 'bain-kombucha', artikel: '', naam: 'KOMBUCHA doos (24 flessen)', leverancier: 'BAIN BREWING', locatie: 'MAGAZIJN', categorie: 'DKW', par: 12, min: 8, slabase: '9061', vraag: { di: [1, 1], do: [6.1, 8], za: [1, 1] } }, // SLAbase 9061: dagpiek 8 (DI 1, DO 8, ZA 1) x 1.5
+
+            // ── DKW · STEANS · MAGAZIJN
+            { id: 'steans-koffie', artikel: '9033', naam: 'KOFFIE BONEN TATU zak (1 kg)', leverancier: 'STEANS', locatie: 'MAGAZIJN', categorie: 'DKW', par: 30, min: 6, slabase: '9033', vraag: { di: [2, 2], do: [4.4, 6], za: [2.5, 4] } }, // SLAbase 9033: DI gem 2 / max 2, DO gem 4.4 / max 6, ZA gem 2.5 / max 4 | hele week zelfde PAR/MIN, per Jop 03-07
+            { id: 'steans-decaf', artikel: '9034', naam: 'KOFFIE DECAF zak (0,5 kg)', leverancier: 'STEANS', locatie: 'MAGAZIJN', categorie: 'DKW', par: 10, min: 3, slabase: '9034', vraag: { di: [1.4, 2], do: [1, 1], za: [1, 1] } }, // SLAbase 9034: DI gem 1.4 / max 2, DO gem 1 / max 1, ZA gem 1 / max 1 | per Jop 03-07
+
+            // ── VIS · Jan Veerman · ORDERPICK CEL
             { id: 'veerman-zalm', artikel: '', naam: 'WARMGEROOKTE ZALM 1 kg', leverancier: 'Jan Veerman', locatie: 'ORDERPICK CEL', categorie: 'VIS', par: 0, min: 0 },
-            { id: 'dateables-almond', artikel: '', naam: 'DATEABLES ALMOND', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0 },
-            { id: 'dateables-sesam', artikel: '', naam: 'DATEABLES SESAM', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0 },
-            { id: 'dateables-cocos', artikel: '', naam: 'DATEABLES COCOS', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0 }
+
+            // ── ZOET · Dateables · ORDERPICK CEL
+            { id: 'dateables-cocos', artikel: '', naam: 'DATEABLES BITE ME! (COCOS) bak (25 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, slabase: '7008', vraag: { di: [2.9, 6], do: [2.8, 5], za: [1.6, 2] }, signaal: true }, // SLAbase 7008: DI gem 2.9 / max 6, DO gem 2.8 / max 5, ZA gem 1.6 / max 2
+            { id: 'dateables-matcha', artikel: '', naam: 'DATEABLES MATCHA! bak (25 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, slabase: '7010', vraag: { di: [2.7, 5], do: [1.7, 2], za: [1.8, 3] }, signaal: true }, // SLAbase 7010: DI gem 2.7 / max 5, DO gem 1.7 / max 2, ZA gem 1.8 / max 3 | vervangt DATEABLES ALMOND (niet meer besteld in SLAbase)
+            { id: 'dateables-berry', artikel: '', naam: 'DATEABLES BERRY! bak (25 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, slabase: '7011', vraag: { di: [3.1, 4], do: [1.6, 3], za: [1.7, 2] }, signaal: true }, // SLAbase 7011: DI gem 3.1 / max 4, DO gem 1.6 / max 3, ZA gem 1.7 / max 2 | vervangt DATEABLES SESAM (niet meer besteld in SLAbase)
+
+            // ── NON-FOOD · JK VERPAKKINGEN · MAGAZIJN — WEEKTELLING (woensdag)
+            { id: 'jk-kookzakken', artikel: '', naam: 'KOOKZAKKEN keuken kip', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 0, min: 0, telEenheid: 'zak (100 stuks)', ritme: 'week' },
+            { id: 'jk-9200', artikel: '9200', naam: 'Zep HW Matic Chlor vaatwasmiddel can 10 L', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 3, min: 2, ritme: 'week', slabase: '9200', vraag: { wk: [1.3, 2] } }, // SLAbase 9200: 4 wkn, gem 1.3, max 2/week
+            { id: 'jk-9870', artikel: '9870', naam: 'Vaatwasmiddel Suma Ultra Pur-Eco L2', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 4, min: 2, ritme: 'week', slabase: '9870', vraag: { wk: [3.2, 4] } }, // SLAbase 9870: 2 wkn, gem 3.2, max 4/week
+            { id: 'jk-9868', artikel: '9868', naam: 'Naspoelmiddel Suma Select Pur-Eco A7 can 10 L', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9868', vraag: { wk: [1, 1] } }, // SLAbase 9868: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9902', artikel: '9902', naam: 'Zep spoelglansmiddel Stovil Shine can 5 L', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9902', vraag: { wk: [1.6, 2] } }, // SLAbase 9902: 2 wkn, gem 1.6, max 2/week
+            { id: 'jk-9869', artikel: '9869', naam: 'Onthardingszout Regesoft 2 kg', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 6, min: 3, ritme: 'week', slabase: '9869', vraag: { wk: [2.9, 4] } }, // SLAbase 9869: 4 wkn, gem 2.9, max 4/week
+            { id: 'jk-9835', artikel: '9835', naam: 'Afwasmiddel', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 5, min: 3, ritme: 'week', slabase: '9835', vraag: { wk: [3.3, 5] } }, // SLAbase 9835: 3 wkn, gem 3.3, max 5/week
+            { id: 'jk-9801', artikel: '9801', naam: 'Blinky eco-tabs glasreiniger lichtblauw nr 1', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 0, min: 0, ritme: 'week' },
+            { id: 'jk-9802', artikel: '9802', naam: 'Blinky eco-tabs sanitairreiniger rood nr 2', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9802', vraag: { wk: [1, 1] } }, // SLAbase 9802: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9803', artikel: '9803', naam: 'Blinky eco-tabs ontvetter geel nr 3', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 0, min: 0, ritme: 'week' },
+            { id: 'jk-9804', artikel: '9804', naam: 'Blinky eco-tabs allesreiniger groen nr 4', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 3, min: 2, ritme: 'week', slabase: '9804', vraag: { wk: [1.5, 2] } }, // SLAbase 9804: 4 wkn, gem 1.5, max 2/week
+            { id: 'jk-9805', artikel: '9805', naam: 'Blinky eco-tabs sanitairgel donkerblauw nr 5', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9805', vraag: { wk: [1, 1] } }, // SLAbase 9805: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9811', artikel: '9811', naam: 'Blinky interieurreiniger flacon 650 ml lichtblauw nr 1', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 4, min: 2, ritme: 'week', slabase: '9811', vraag: { wk: [1.4, 4] } }, // SLAbase 9811: 3 wkn, gem 1.4, max 4/week
+            { id: 'jk-9812', artikel: '9812', naam: 'Blinky sanitairreiniger flacon 650 ml rood nr 2', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9812', vraag: { wk: [1, 1] } }, // SLAbase 9812: 1 wkn, gem 1, max 1/week
+            { id: 'jk-9813', artikel: '9813', naam: 'Blinky ontvetter flacon 650 ml geel nr 3', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 0, min: 0, ritme: 'week' },
+            { id: 'jk-9814', artikel: '9814', naam: 'Blinky allesreiniger flacon 650 ml groen nr 4', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 5, min: 2, ritme: 'week', slabase: '9814', vraag: { wk: [2.2, 5] } }, // SLAbase 9814: 3 wkn, gem 2.2, max 5/week
+            { id: 'jk-9807', artikel: '9807', naam: 'Blinky trigger lichtblauw', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9807', vraag: { wk: [2, 2] } }, // SLAbase 9807: 1 wkn, gem 2, max 2/week
+            { id: 'jk-9823', artikel: '9823', naam: 'Blinky trigger geel', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9823', vraag: { wk: [1, 1] } }, // SLAbase 9823: 1 wkn, gem 1, max 1/week
+            { id: 'jk-9825', artikel: '9825', naam: 'Blinky trigger blauw', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9825', vraag: { wk: [1.6, 2] } }, // SLAbase 9825: 2 wkn, gem 1.6, max 2/week
+            { id: 'jk-9826', artikel: '9826', naam: 'Blinky trigger groen', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 3, min: 2, ritme: 'week', slabase: '9826', vraag: { wk: [2.6, 3] } }, // SLAbase 9826: 2 wkn, gem 2.6, max 3/week
+            { id: 'jk-9886', artikel: '9886', naam: 'Grill- & ovenreiniger met trigger JK 1 L', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 5, min: 3, ritme: 'week', slabase: '9886', vraag: { wk: [10, 10] } }, // SLAbase 9886: 1 wkn, gem 10, max 10/week
+            { id: 'jk-9862', artikel: '9862', naam: 'Koffiemachinereiniger poeder met ontkalker', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9862', vraag: { wk: [2, 2] } }, // SLAbase 9862: 1 wkn, gem 2, max 2/week
+            { id: 'jk-9885', artikel: '9885', naam: 'TS Trisept vloeibaar desinfectiemiddel', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 7, min: 4, ritme: 'week', slabase: '9885', vraag: { wk: [3.1, 7] } }, // SLAbase 9885: 4 wkn, gem 3.1, max 7/week
+            { id: 'jk-9815', artikel: '9815', naam: 'PB schoonmaakazijn 1 L', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 4, min: 2, ritme: 'week', slabase: '9815', vraag: { wk: [1.6, 3] } }, // SLAbase 9815: 4 wkn, gem 1.6, max 3/week
+            { id: 'jk-9819', artikel: '9819', naam: 'ZONE verdikte bleek 1 L', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9819', vraag: { wk: [1.4, 2] } }, // SLAbase 9819: 2 wkn, gem 1.4, max 2/week
+            { id: 'jk-9840', artikel: '9840', naam: 'CLEAN waspoeder zak 20 kg', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9840', vraag: { wk: [3, 3] } }, // SLAbase 9840: 1 wkn, gem 3, max 3/week
+            { id: 'jk-9865', artikel: '9865', naam: 'Lenor wasverzachter fles 5 L', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9865', vraag: { wk: [2, 2] } }, // SLAbase 9865: 1 wkn, gem 2, max 2/week
+            { id: 'jk-9809', artikel: '9809', naam: 'Mop wit met band 375 gr', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9809', vraag: { wk: [1, 1] } }, // SLAbase 9809: 1 wkn, gem 1, max 1/week
+            { id: 'jk-9867', artikel: '9867', naam: 'Microvezeldoek 40x40 blauw', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9867', vraag: { wk: [1.3, 2] } }, // SLAbase 9867: 2 wkn, gem 1.3, max 2/week
+            { id: 'jk-9881', artikel: '9881', naam: 'Reinigingsdoek geel 38x38 (pak 10 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 0, min: 0, ritme: 'week' },
+            { id: 'jk-9818', artikel: '9818', naam: 'Theedoeken blauw/rood gestreept', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 8, min: 3, ritme: 'week', slabase: '9818', vraag: { wk: [5.2, 8] } }, // SLAbase 9818: 2 wkn, gem 5.2, max 8/week
+            { id: 'jk-9871', artikel: '9871', naam: 'Pannenspons metaal', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 6, min: 2, ritme: 'week', slabase: '9871', vraag: { wk: [1.7, 6] } }, // SLAbase 9871: 4 wkn, gem 1.7, max 6/week
+            { id: 'jk-9888', artikel: '9888', naam: 'Schuurspons groot 14x10 geel', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9888', vraag: { wk: [1, 1] } }, // SLAbase 9888: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9860', artikel: '9860', naam: 'Karcher WD2/MV2 stofzuigerzak', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9860', vraag: { wk: [1, 1] } }, // SLAbase 9860: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9877', artikel: '9877', naam: 'Poetsrol 1-laags wit recycled (pak 6 rol)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 3, min: 2, ritme: 'week', slabase: '9877', vraag: { wk: [1.5, 2] } }, // SLAbase 9877: 3 wkn, gem 1.5, max 2/week
+            { id: 'jk-9878', artikel: '9878', naam: 'Poetsrol mini', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 3, min: 2, ritme: 'week', slabase: '9878', vraag: { wk: [2.7, 3] } }, // SLAbase 9878: 2 wkn, gem 2.7, max 3/week
+            { id: 'jk-9844', artikel: '9844', naam: 'Handdoekpapier Multifold JK 2-laags (doos 25x150 vel)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9844', vraag: { wk: [1.3, 2] } }, // SLAbase 9844: 3 wkn, gem 1.3, max 2/week
+            { id: 'jk-9903', artikel: '9903', naam: 'Toiletpapier doprollen 2-laags 100 m (doos 24 rollen)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9903', vraag: { wk: [2, 2] } }, // SLAbase 9903: 2 wkn, gem 2, max 2/week
+            { id: 'jk-9905', artikel: '9905', naam: 'Euro Pearl foam lotion handzeep fles 1000 ml', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 3, min: 2, ritme: 'week', slabase: '9905', vraag: { wk: [1.5, 2] } }, // SLAbase 9905: 3 wkn, gem 1.5, max 2/week
+            { id: 'jk-9850', artikel: '9850', naam: 'Handschoen nitril zwart L (100 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 19, min: 10, ritme: 'week', slabase: '9850', vraag: { wk: [9.2, 12] } }, // SLAbase 9850: 4 wkn, gem 9.2, max 12/week
+            { id: 'jk-9851', artikel: '9851', naam: 'Handschoen nitril zwart M (100 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 49, min: 25, ritme: 'week', slabase: '9851', vraag: { wk: [24.3, 42] } }, // SLAbase 9851: 4 wkn, gem 24.3, max 42/week
+            { id: 'jk-9852', artikel: '9852', naam: 'Handschoen nitril zwart S (100 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 5, min: 3, ritme: 'week', slabase: '9852', vraag: { wk: [3, 4] } }, // SLAbase 9852: 3 wkn, gem 3, max 4/week
+            { id: 'jk-9841', artikel: '9841', naam: 'Detectaplast vingerpleisters 120x20 mm (pak 100 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9841', vraag: { wk: [2, 2] } }, // SLAbase 9841: 1 wkn, gem 2, max 2/week
+            { id: 'jk-9836', artikel: '9836', naam: 'Afvalzak blauw 130 L T70 (rol 20 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9836', vraag: { wk: [1, 1] } }, // SLAbase 9836: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9837', artikel: '9837', naam: 'Afvalzak grijs 60 L T50 (rol 20 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9837', vraag: { wk: [1, 1] } }, // SLAbase 9837: 1 wkn, gem 1, max 1/week
+            { id: 'jk-9864', artikel: '9864', naam: 'Kratzakken blauw (1000 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9864', vraag: { wk: [1, 1] } }, // SLAbase 9864: 3 wkn, gem 1, max 1/week
+            { id: 'jk-9883', artikel: '9883', naam: 'Sluitgripzakjes smoothiepack 15x20 cm (doos 1000 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9883', vraag: { wk: [1, 1] } }, // SLAbase 9883: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9817', artikel: '9817', naam: 'Plastic folie 45x300 refill (3 rollen)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9817', vraag: { wk: [1, 1] } }, // SLAbase 9817: 1 wkn, gem 1, max 1/week
+            { id: 'jk-9875', artikel: '9875', naam: 'Plastic folie 30x300 refill (3 rollen)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9875', vraag: { wk: [1, 1] } }, // SLAbase 9875: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9882', artikel: '9882', naam: 'Slagersfolie 30x24', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9882', vraag: { wk: [1, 1] } }, // SLAbase 9882: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9834', artikel: '9834', naam: 'Bakpapier 30 cm rol 50 m (doos 3 rollen)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 3, min: 2, ritme: 'week', slabase: '9834', vraag: { wk: [1.3, 2] } }, // SLAbase 9834: 4 wkn, gem 1.3, max 2/week
+            { id: 'jk-9880', artikel: '9880', naam: 'Refork drinkrietje zwart', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 4, min: 2, ritme: 'week', slabase: '9880', vraag: { wk: [1.8, 3] } }, // SLAbase 9880: 4 wkn, gem 1.8, max 3/week
+            { id: 'jk-9861', artikel: '9861', naam: 'Kassa thermorol 80x80x12 mm (per rol)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 3, min: 2, ritme: 'week', slabase: '9861', vraag: { wk: [2.2, 3] } }, // SLAbase 9861: 2 wkn, gem 2.2, max 3/week
+            { id: 'jk-9863', artikel: '9863', naam: 'Kopieerpapier A4 80 grs (pak 500 vel)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 0, min: 0, ritme: 'week' },
+            { id: 'jk-9831', artikel: '9831', naam: 'Bic balpennen blauw (50 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 0, min: 0, ritme: 'week' },
+            { id: 'jk-9872', artikel: '9872', naam: 'Permanent marker zwart 1,5 mm', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 30, min: 15, ritme: 'week', slabase: '9872', vraag: { wk: [19.6, 25] } }, // SLAbase 9872: 3 wkn, gem 19.6, max 25/week
+            { id: 'jk-9866', artikel: '9866', naam: 'Maskingtape', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 45, min: 23, ritme: 'week', slabase: '9866', vraag: { wk: [22.4, 36] } }, // SLAbase 9866: 4 wkn, gem 22.4, max 36/week
+            { id: 'jk-9873', artikel: '9873', naam: 'Plakband groot 12 mm x 66 m (pak 12 rol)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9873', vraag: { wk: [1, 1] } }, // SLAbase 9873: 2 wkn, gem 1, max 1/week
+            { id: 'jk-9874', artikel: '9874', naam: 'Plakband klein 19 mm x 33 m', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 2, min: 1, ritme: 'week', slabase: '9874', vraag: { wk: [1, 1] } }, // SLAbase 9874: 1 wkn, gem 1, max 1/week
+            { id: 'jk-9832', artikel: '9832', naam: 'Batterij Varta C / LR14 (pak 20 st)', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 0, min: 0, ritme: 'week' }
         ];
+
+        // Hernoemde ids (28-09-2026): een lopende telling gaat mee naar het nieuwe product
+        const ID_MIGRATIE = { 'udea-192': 'udea-196', 'postuma-gelebiet': 'udea-277', 'udea-soeptomaten': 'udea-214', 'udea-waspeen': 'udea-winterpeen' };
+
+        const LOCATIE_VOLGORDE = ['ORDERPICK CEL', 'MAGAZIJN', 'VRIEZER'];
+        const LEVERANCIER_VOLGORDE = ['UDEA', 'POSTUMA', 'VHC', 'JET DRINKS', 'BAIN BREWING', 'STEANS', 'DUN YONG', 'VANMENNO', 'TSANTOS', 'Kraats', 'SOLSTICE', 'Jan Veerman', 'Dateables', 'JK VERPAKKINGEN'];
+        const MAIN_SUPPLIERS = ['UDEA', 'POSTUMA', 'VHC', 'BAIN BREWING', 'JET DRINKS', 'STEANS', 'JK VERPAKKINGEN'];
+        const MAIL_TO = 'jop@ilovesla.com,mischa@ilovesla.com';
+        // Google Apps Script die de mail met Excel-bijlage verstuurt
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbytHJ8WflY7Nq3MNNr76nTDs9mstRMMzv8d7uubT4wly0hX-qRTbvYitvCj9ThOMz7W/exec';
+
+        // localStorage kan falen (privé-modus, volle opslag) — dan werkt de app gewoon zonder bewaren
+        const store = {
+            get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+            set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* negeren */ } },
+            del(k) { try { localStorage.removeItem(k); } catch (e) { /* negeren */ } }
+        };
 
         let counts = {};
         let currentFilter = 'all';
         let searchTerm = '';
+        let weergave = store.get('sla-weergave') === 'leverancier' ? 'leverancier' : 'locatie';
+        let bezigMetVerzenden = false;
+        // Producten die tijdens het filter "Niet geteld"/"Te bestellen" zijn aangetikt blijven zichtbaar
+        // tot je van filter wisselt (anders verdwijnt een product na de eerste tik op +).
+        let vastgehouden = new Set();
 
         function loadCounts() {
-            const saved = localStorage.getItem('sla-counts');
-            if (saved) counts = JSON.parse(saved);
+            const saved = store.get('sla-counts');
+            if (saved) {
+                try { counts = JSON.parse(saved) || {}; } catch (e) { counts = {}; }
+            }
         }
 
         function saveCounts() {
-            localStorage.setItem('sla-counts', JSON.stringify(counts));
+            store.set('sla-counts', JSON.stringify(counts));
+            store.set('sla-counts-updated', String(Date.now()));
+        }
+
+        function clearCounts() {
+            counts = {};
+            store.del('sla-counts');
+            store.del('sla-counts-updated');
+        }
+
+        // Bepaal welke besteldag-PAR/MIN geldt voor deze telling.
+        // De telling gebeurt 's avonds, NA de bestel-cutoff (13:00) van die dag:
+        // een telling op do-avond is voor de bestelling van za -> za PAR/MIN.
+        // di-avond -> do, do-avond -> za, za-avond -> di (volgende week).
+        // Vóór 13:00 op een besteldag geldt de besteldag zelf nog.
+        function getBestelDag() {
+            const nu = new Date();
+            const dag = nu.getDay(); // 0=zo, 1=ma, 2=di, 3=wo, 4=do, 5=vr, 6=za
+            const naCutoff = nu.getHours() >= 13;
+            if (dag === 2) return naCutoff ? 'do' : 'di';
+            if (dag === 4) return naCutoff ? 'za' : 'do';
+            if (dag === 6) return naCutoff ? 'di' : 'za';
+            if (dag === 0 || dag === 1) return 'di';
+            if (dag === 3) return 'do';
+            return 'za'; // vrijdag
+        }
+
+        // Haal PAR/MIN op voor een product (dag-specifiek als beschikbaar)
+        function getParMin(p) {
+            const dag = getBestelDag();
+            if (p.dagPar && p.dagPar[dag]) {
+                return { par: p.dagPar[dag].par, min: p.dagPar[dag].min, dagLabel: dag.toUpperCase() };
+            }
+            return { par: p.par, min: p.min, dagLabel: null };
+        }
+
+        // Lokale datum (YYYY-MM-DD) — toISOString() is UTC en geeft na middernacht in de wintertijd de verkeerde dag
+        function localDate(d = new Date()) {
+            const p = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+        }
+        function localDateTime(d = new Date()) {
+            const p = n => String(n).padStart(2, '0');
+            return `${p(d.getDate())}-${p(d.getMonth() + 1)} ${p(d.getHours())}:${p(d.getMinutes())}`;
+        }
+
+        // Datum van de besteldag waarvoor deze telling geldt (eerstvolgende di/do/za volgens getBestelDag)
+        function getBestelDagDatum() {
+            const doel = { di: 2, do: 4, za: 6 }[getBestelDag()];
+            const d = new Date();
+            const nu = d.getDay();
+            let plus = (doel - nu + 7) % 7;
+            if (plus === 0 && d.getHours() >= 13) plus = 7; // vandaag ná cutoff -> volgende week
+            d.setDate(d.getDate() + plus);
+            return d;
+        }
+
+        function isGeteld(p) { return counts[p.id] !== undefined; }
+
+        // Voorraad in PAR-eenheden: telFactor = PAR-eenheden per getelde eenheid
+        // (bv. edamame: tellen per doos van 20 zakken -> telFactor 20)
+        function getVoorraad(p) {
+            return (counts[p.id] || 0) * (p.telFactor || 1);
+        }
+
+        // Weekproducten (ritme 'week', JK) worden woensdag geteld en staan buiten het dagelijkse ritme
+        function isWeekProduct(p) { return p.ritme === 'week'; }
+        function isWoensdag() { return new Date().getDay() === 3; }
+        // Hoort dit product in de telling van vandaag? (JK alleen op woensdag)
+        function inTelling(p) { return !isWeekProduct(p) || isWoensdag(); }
+
+        // Besteladvies in besteleenheden: bestelFactor = PAR-eenheden per besteleenheid
+        // (bv. citroen: tellen per 3 kg, UDEA-doos 15 kg -> bestelFactor 5)
+        function getBestelAdvies(p, pm) {
+            if (p.specialOrder !== undefined) return p.specialOrder;
+            let advies = Math.max(0, Math.ceil((pm.par - getVoorraad(p)) / (p.bestelFactor || 1) - 1e-9));
+            // bestelVeelvoud: rond advies naar boven af op dit veelvoud (bv. melk per 6)
+            if (p.bestelVeelvoud) advies = Math.ceil(advies / p.bestelVeelvoud) * p.bestelVeelvoud;
+            return advies;
+        }
+
+        // Eén plek die bepaalt of er besteld wordt: voorraad <= MIN -> aanvullen tot PAR.
+        // Niet-getelde producten tellen als 0 (de verzendknop waarschuwt daarvoor),
+        // behalve JK: die wordt alleen besteld als hij echt geteld is. Signaalproducten bestellen nooit.
+        function getBestelRegel(p) {
+            if (p.signaal) return null;
+            if (isWeekProduct(p) && !isGeteld(p)) return null;
+            const pm = getParMin(p);
+            if (!(pm.min > 0)) return null;
+            const voorraad = getVoorraad(p);
+            if (voorraad > pm.min) return null;
+            const qty = getBestelAdvies(p, pm);
+            if (!(qty > 0)) return null;
+            return { p, pm, voorraad, qty };
+        }
+
+        // Winkelvraag (SLAbase) voor de volgende productiedag, of per week voor JK
+        function getVraag(p) {
+            if (!p.vraag) return null;
+            if (p.vraag.wk) return { label: 'per week', gem: p.vraag.wk[0], max: p.vraag.wk[1] };
+            const dag = getBestelDag();
+            const v = p.vraag[dag];
+            return { label: dag.toUpperCase(), gem: v ? v[0] : 0, max: v ? v[1] : 0 };
+        }
+
+        // Tekortsignaal voor producten die de app niet zelf bestelt (vaste levering, eieren, Dateables)
+        function getSignaal(p) {
+            if (!p.signaal || !isGeteld(p)) return null;
+            const v = getVraag(p);
+            if (!v || !(v.max > 0)) return null;
+            const dag = getBestelDag();
+            const vast = p.vasteLevering ? (p.vasteLevering[dag] || 0) : 0;
+            const beschikbaar = getVoorraad(p) + vast;
+            if (beschikbaar >= v.max) return null;
+            return {
+                dag: dag.toUpperCase(), vast, voorraad: getVoorraad(p), beschikbaar,
+                gem: v.gem, max: v.max,
+                tekort: Math.ceil(v.max - beschikbaar - 1e-9),
+                ernstig: beschikbaar < v.gem
+            };
+        }
+
+        function fmtNum(x) { return String(Math.round(x * 10) / 10).replace('.', ','); }
+        function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+        function eenheidTxt(p) { return p.bestelEenheid ? ' × ' + p.bestelEenheid : ''; }
+        function rang(lijst, k) { const i = lijst.indexOf(k); return i === -1 ? 999 : i; }
+
+        function renderTelInfo() {
+            const el = document.getElementById('telInfo');
+            if (!el) return;
+            const dag = getBestelDag().toUpperCase();
+            const datum = getBestelDagDatum();
+            const p = n => String(n).padStart(2, '0');
+            let html = `<span>📅 Telt voor besteldag <strong>${dag} ${p(datum.getDate())}-${p(datum.getMonth() + 1)}</strong></span>`;
+            if (isWoensdag()) html += `<span class="week">🧽 Woensdag: JK-weektelling schoonmaak/non-food</span>`;
+            const lastSent = store.get('sla-last-sent');
+            if (lastSent) html += `<span>✅ Laatst verzonden: ${localDateTime(new Date(parseInt(lastSent, 10)))}</span>`;
+            el.innerHTML = html;
+            const jkBtn = document.getElementById('jkFilterBtn');
+            if (jkBtn) {
+                jkBtn.classList.toggle('today', isWoensdag());
+                jkBtn.textContent = isWoensdag() ? 'JK · vandaag' : 'JK · wo';
+            }
+        }
+
+        function matchesSearch(p) {
+            if (searchTerm === '') return true;
+            const q = searchTerm.toLowerCase();
+            return [p.naam, p.artikel, p.leverancier, p.alt, p.locatie, p.categorie, p.slabase]
+                .some(x => x && String(x).toLowerCase().includes(q));
+        }
+
+        function matchesFilter(p) {
+            const week = isWeekProduct(p);
+            switch (currentFilter) {
+                case 'all': return !week || searchTerm !== '';
+                case 'nietgeteld': return inTelling(p) && (!isGeteld(p) || vastgehouden.has(p.id));
+                case 'bestellen': return !!((isGeteld(p) && getBestelRegel(p)) || getSignaal(p)) || vastgehouden.has(p.id);
+                case 'other': return !week && !MAIN_SUPPLIERS.includes(p.leverancier);
+                default: return p.leverancier === currentFilter || p.alt === currentFilter;
+            }
         }
 
         function getFilteredProducts() {
-            return products.filter(product => {
-                const matchesFilter = currentFilter === 'all' || 
-                    (currentFilter === 'other' && !['UDEA', 'POSTUMA', 'VHC'].includes(product.leverancier)) ||
-                    product.leverancier === currentFilter;
-                
-                const matchesSearch = searchTerm === '' || 
-                    product.naam.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    product.artikel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    product.leverancier.toLowerCase().includes(searchTerm.toLowerCase());
-                
-                return matchesFilter && matchesSearch;
-            });
+            return products.filter(p => matchesFilter(p) && matchesSearch(p));
         }
 
-        function groupBySupplier(products) {
-            const groups = {};
-            products.forEach(p => {
-                if (!groups[p.leverancier]) groups[p.leverancier] = [];
-                groups[p.leverancier].push(p);
+        function groepeer(lijst, keyFn, volgorde) {
+            const m = new Map();
+            lijst.forEach(p => {
+                const k = keyFn(p);
+                if (!m.has(k)) m.set(k, []);
+                m.get(k).push(p);
             });
-            return groups;
+            return [...m.entries()].sort((a, b) => rang(volgorde, a[0]) - rang(volgorde, b[0]) || a[0].localeCompare(b[0]));
         }
 
         function updateStats() {
-            const filtered = getFilteredProducts();
-            const counted = filtered.filter(p => counts[p.id] > 0);
-            const total = Object.values(counts).reduce((s, c) => s + c, 0);
-            const needsOrder = filtered.filter(p => {
-                const count = counts[p.id] || 0;
-                return count <= p.min && p.min > 0;
-            });
-            
-            document.getElementById('totalProducts').textContent = filtered.length;
-            document.getElementById('countedProducts').textContent = counted.length;
-            document.getElementById('totalItems').textContent = total;
-            document.getElementById('needsOrderProducts').textContent = needsOrder.length;
-            // Export button always enabled - we export all products (counted or not)
-            document.getElementById('exportBtn').disabled = false;
+            const scope = products.filter(inTelling);
+            const geteld = scope.filter(isGeteld).length;
+            // Tijdens het tellen alleen getelde producten als "te bestellen" tonen;
+            // niet-getelde (tellen als 0) worden bij het verzenden apart gemeld.
+            const regels = products.filter(isGeteld).map(getBestelRegel).filter(Boolean);
+            const signalen = products.map(getSignaal).filter(Boolean);
+            const nogTeTellen = scope.length - geteld;
+
+            document.getElementById('countedProducts').textContent = geteld;
+            document.getElementById('totalProducts').textContent = scope.length;
+            document.getElementById('progressBar').style.width = scope.length ? (100 * geteld / scope.length) + '%' : '0%';
+            document.getElementById('needsOrderProducts').textContent = regels.length;
+            document.getElementById('signalProducts').textContent = signalen.length;
+            document.getElementById('cntNietGeteld').textContent = scope.length - geteld;
+            document.getElementById('cntBestellen').textContent = regels.length + signalen.length;
+
+            const btn = document.getElementById('exportBtn');
+            if (!bezigMetVerzenden) {
+                btn.disabled = false; // we verzenden altijd alle producten (geteld of niet)
+                btn.textContent = nogTeTellen > 0
+                    ? `📧 Verzend · nog ${nogTeTellen} niet geteld`
+                    : (regels.length ? `📧 Verzend bestelling · ${regels.length} regel${regels.length === 1 ? '' : 's'}` : '📧 Verzend telling (niets te bestellen)');
+            }
+        }
+
+        function productHtml(p) {
+            const geteld = isGeteld(p);
+            const pm = getParMin(p);
+            const regel = geteld ? getBestelRegel(p) : null; // niet geteld: alleen "Niet geteld", geen geel
+            const sig = getSignaal(p);
+            const vraag = getVraag(p);
+            const dagTxt = pm.dagLabel ? pm.dagLabel + ' ' : '';
+            const dag = getBestelDag();
+
+            const details = [p.artikel ? 'Art. ' + p.artikel : 'Geen artikelnummer'];
+            details.push(weergave === 'locatie' ? p.leverancier : p.locatie);
+            if (p.telEenheid) details.push('tel per ' + p.telEenheid);
+            if (p.bestelEenheid) details.push('bestel per ' + p.bestelEenheid);
+
+            let badges = `<span class="meta-badge cat">${esc(p.categorie)}</span>`;
+            if (p.alt) badges += `<span class="meta-badge alt">ook ${esc(p.altNote || p.alt)}</span>`;
+            if (pm.par > 0) badges += `<span class="meta-badge">${dagTxt}PAR: ${pm.par}</span>`;
+            if (pm.min > 0) badges += `<span class="meta-badge">${dagTxt}MIN: ${pm.min}</span>`;
+            if (p.vasteLevering) badges += `<span class="meta-badge vast">Vaste levering ${dag.toUpperCase()}: ${p.vasteLevering[dag] || 0}</span>`;
+            if (vraag) badges += `<span class="meta-badge vraag" title="Winkelbestellingen SLAbase, afgelopen 4 weken">Vraag ${vraag.label}: ${vraag.max > 0 ? '±' + fmtNum(vraag.gem) + ' · max ' + fmtNum(vraag.max) : 'geen'}</span>`;
+            if (regel) badges += `<span class="meta-badge order">Bestel: ${regel.qty}${esc(eenheidTxt(p))}</span>`;
+            if (sig) badges += `<span class="meta-badge signaal">⚠️ ${sig.ernstig ? 'Tekort' : 'Krap'} ${sig.dag}: ${sig.beschikbaar} beschikbaar${sig.vast ? ' (incl. vaste levering ' + sig.vast + ')' : ''} · piek ${fmtNum(sig.max)}</span>`;
+            if (!geteld && pm.min > 0 && inTelling(p)) badges += `<span class="meta-badge niet-geteld">Niet geteld</span>`;
+
+            const cls = ['product-item'];
+            if (geteld) cls.push('has-count');
+            if (regel) cls.push('needs-order');
+            if (sig) cls.push('has-signal');
+
+            return `<div class="${cls.join(' ')}" data-id="${esc(p.id)}">
+                <div class="product-info">
+                    <div class="product-name">${esc(p.naam)}${regel ? ' ⚠️' : ''}</div>
+                    <div class="product-details">${esc(details.join(' · '))}</div>
+                    <div class="product-meta">${badges}</div>
+                </div>
+                <div class="counter">
+                    <button class="counter-btn" type="button" data-act="min" aria-label="Min één">−</button>
+                    <input class="counter-value" type="number" inputmode="numeric" min="0" step="1" placeholder="–" value="${geteld ? counts[p.id] : ''}" aria-label="Aantal ${esc(p.naam)}">
+                    <button class="counter-btn" type="button" data-act="plus" aria-label="Plus één">+</button>
+                </div>
+            </div>`;
         }
 
         function renderProducts() {
             const container = document.getElementById('productsContainer');
             const filtered = getFilteredProducts();
-            
+
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="empty-state"><h3>Geen producten gevonden</h3></div>';
+                const tekst = currentFilter === 'nietgeteld' ? 'Alles is geteld 🎉' : currentFilter === 'bestellen' ? 'Niets te bestellen' : 'Geen producten gevonden';
+                container.innerHTML = `<div class="empty-state"><h3>${tekst}</h3></div>`;
+                updateStats();
                 return;
             }
-            
-            const groups = groupBySupplier(filtered);
+
             let html = '';
-            
-            Object.keys(groups).sort().forEach(supplier => {
-                const prods = groups[supplier];
-                html += `<div class="supplier-group">
-                    <div class="supplier-header">
-                        <span>${supplier}</span>
-                        <span class="supplier-count">${prods.length} producten</span>
-                    </div>`;
-                
-                prods.forEach(p => {
-                    const count = counts[p.id] || 0;
-                    const needsOrder = count <= p.min && p.min > 0;
-                    // Use specialOrder if defined, otherwise calculate PAR - count
-                    const orderQty = needsOrder ? (p.specialOrder !== undefined ? p.specialOrder : p.par - count) : 0;
-                    
-                    html += `<div class="product-item ${count > 0 ? 'has-count' : ''} ${needsOrder ? 'needs-order' : ''}">
-                        <div class="product-info">
-                            <div class="product-name">
-                                ${p.naam}
-                                ${needsOrder ? ' ⚠️' : ''}
-                            </div>
-                            <div class="product-details">${p.artikel ? 'Artikel: ' + p.artikel : 'Geen artikelnummer'}</div>
-                            <div class="product-meta">
-                                <span class="meta-badge">${p.categorie}</span>
-                                <span class="meta-badge">${p.locatie}</span>
-                                ${p.par > 0 ? `<span class="meta-badge">PAR: ${p.par}</span>` : ''}
-                                ${p.min > 0 ? `<span class="meta-badge">MIN: ${p.min}</span>` : ''}
-                                ${needsOrder ? `<span class="meta-badge order-badge">Bestel: ${orderQty}</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="counter">
-                            <button class="counter-btn" onclick="change('${p.id}', -1)">−</button>
-                            <div class="counter-value">${count}</div>
-                            <button class="counter-btn" onclick="change('${p.id}', 1)">+</button>
-                        </div>
-                    </div>`;
+            if (weergave === 'locatie') {
+                groepeer(filtered, p => p.locatie, LOCATIE_VOLGORDE).forEach(([loc, items]) => {
+                    const n = items.filter(isGeteld).length;
+                    html += `<section class="groep" data-loc="${esc(loc)}"><div class="groep-header"><span>📍 ${esc(loc)}</span><span class="groep-count">${n}/${items.length} geteld</span></div>`;
+                    groepeer(items, p => p.leverancier, LEVERANCIER_VOLGORDE).forEach(([lev, prods]) => {
+                        html += `<div class="sub-header"><span>${esc(lev)}</span><span>${prods.length}</span></div>`;
+                        html += prods.map(productHtml).join('');
+                    });
+                    html += '</section>';
                 });
-                html += '</div>';
-            });
-            
+            } else {
+                groepeer(filtered, p => p.leverancier, LEVERANCIER_VOLGORDE).forEach(([lev, prods]) => {
+                    html += `<section class="groep"><div class="groep-header"><span>${esc(lev)}</span><span class="groep-count">${prods.length} producten</span></div>`;
+                    html += prods.map(productHtml).join('');
+                    html += '</section>';
+                });
+            }
+
             container.innerHTML = html;
             updateStats();
         }
 
-        window.change = function(id, delta) {
-            if (!counts[id]) counts[id] = 0;
-            counts[id] = Math.max(0, counts[id] + delta);
-            saveCounts();
-            renderProducts();
+        // Alleen de kaart van dit product vervangen: sneller, en een tik op + bij een ánder product
+        // (terwijl er nog een getal in een invoerveld stond) gaat zo niet verloren.
+        function updateCard(id) {
+            const oud = [...document.querySelectorAll('#productsContainer .product-item')].find(el => el.dataset.id === id);
+            const p = products.find(x => x.id === id);
+            if (!oud || !p) { renderProducts(); return; }
+            const tmp = document.createElement('div');
+            tmp.innerHTML = productHtml(p);
+            oud.replaceWith(tmp.firstElementChild);
+            document.querySelectorAll('#productsContainer section.groep[data-loc]').forEach(sec => {
+                const ids = [...sec.querySelectorAll('.product-item')].map(el => el.dataset.id);
+                const n = ids.filter(i => counts[i] !== undefined).length;
+                const el = sec.querySelector('.groep-count');
+                if (el) el.textContent = `${n}/${ids.length} geteld`;
+            });
+            updateStats();
         }
 
-        function exportToExcel() {
-            // Bereken bestellingen voor UDEA producten
-            const udeaOrders = products
-                .filter(p => p.leverancier === 'UDEA')
-                .filter(p => {
-                    const count = counts[p.id] || 0;
-                    return count <= p.min && p.min > 0;
-                })
-                .map(p => {
-                    const count = counts[p.id] || 0;
-                    // Check if product has special order quantity
-                    const orderQty = p.specialOrder !== undefined ? p.specialOrder : (p.par - count);
-                    return {
-                        'Artikelnummer': p.artikel || 'Geen nummer',
-                        'Naam': p.naam,
-                        'Huidige Voorraad': count,
-                        'MIN': p.min,
-                        'PAR': p.par,
-                        'Te Bestellen': orderQty,
-                        'Leverancier': p.leverancier,
-                        'Locatie': p.locatie,
-                        'Categorie': p.categorie
-                    };
-                });
-            
-            // Alle tellingen voor referentie (alle producten, ook niet-getelde op 0)
-            const allCounts = products
-                .map(p => ({
-                    'Artikelnummer': p.artikel || 'Geen nummer',
-                    'Naam': p.naam,
-                    'Geteld': counts[p.id] || 0,
-                    'Leverancier': p.leverancier,
-                    'Locatie': p.locatie,
-                    'Categorie': p.categorie
-                }));
-            
-            if (udeaOrders.length === 0 && allCounts.length === 0) {
-                return alert('Geen tellingen of bestellingen om te verzenden');
-            }
-            
-            // Genereer Excel
-            const wb = XLSX.utils.book_new();
-            
-            if (udeaOrders.length > 0) {
-                const ws1 = XLSX.utils.json_to_sheet(udeaOrders);
-                ws1['!cols'] = [
-                    { wch: 15 }, { wch: 40 }, { wch: 15 }, 
-                    { wch: 10 }, { wch: 10 }, { wch: 12 },
-                    { wch: 15 }, { wch: 20 }, { wch: 12 }
-                ];
-                XLSX.utils.book_append_sheet(wb, ws1, 'UDEA Bestelling');
-            }
-            
-            if (allCounts.length > 0) {
-                const ws2 = XLSX.utils.json_to_sheet(allCounts);
-                ws2['!cols'] = [
-                    { wch: 15 }, { wch: 40 }, { wch: 10 }, 
-                    { wch: 15 }, { wch: 20 }, { wch: 12 }
-                ];
-                XLSX.utils.book_append_sheet(wb, ws2, 'Alle Tellingen');
-            }
-            
-            const date = new Date().toISOString().split('T')[0];
-            const filename = `SLA_Bestelling_${date}.xlsx`;
-            
-            // Genereer Excel als base64
-            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
-            
-            // Ook lokaal downloaden
-            XLSX.writeFile(wb, filename);
-            
-            // Maak email body tekst
-            let emailBodyText = 'Beste,\n\n';
-            emailBodyText += 'Hierbij de voorraadtelling en UDEA bestelling van SLA Keuken.\n\n';
-            
-            if (udeaOrders.length > 0) {
-                emailBodyText += 'TE BESTELLEN BIJ UDEA:\n';
-                emailBodyText += '─'.repeat(50) + '\n';
-                udeaOrders.forEach(item => {
-                    emailBodyText += `${item.Naam}\n`;
-                    emailBodyText += `  Artikel: ${item.Artikelnummer} | Huidig: ${item['Huidige Voorraad']} | PAR: ${item.PAR} | Bestellen: ${item['Te Bestellen']}\n\n`;
-                });
+        function onthoud(id) {
+            if (currentFilter === 'nietgeteld' || currentFilter === 'bestellen') vastgehouden.add(id);
+        }
+
+        // Leeg veld = niet geteld (telling ongedaan maken); 0 = geteld, niets op voorraad
+        function setCount(id, val) {
+            onthoud(id);
+            if (String(val).trim() === '') {
+                delete counts[id];
             } else {
-                emailBodyText += 'Geen producten onder minimum voorraad.\n\n';
+                counts[id] = Math.max(0, parseInt(val, 10) || 0);
             }
-            emailBodyText += '─'.repeat(50) + '\n';
-            emailBodyText += `Datum telling: ${date}\n`;
-            emailBodyText += 'Met vriendelijke groet,\nSLA Keuken';
+            saveCounts();
+            updateStats();
+            // Kaart iets later verversen: het invoerveld verliest focus precies wanneer je op een ander
+            // product tikt; zou de lijst dan meteen verspringen, dan mist die tik zijn knop.
+            setTimeout(() => updateCard(id), 250);
+        }
 
-            // Google Apps Script URL - vervang na instellen
-            const GAS_URL = 'https://script.google.com/macros/s/AKfycbytHJ8WflY7Nq3MNNr76nTDs9mstRMMzv8d7uubT4wly0hX-qRTbvYitvCj9ThOMz7W/exec';
-            
-            // Verstuur naar Google Apps Script
-            const btn = document.getElementById('exportBtn');
-            btn.textContent = '⏳ Versturen...';
-            btn.disabled = true;
+        // − op een niet-geteld product markeert hem als "geteld: 0"
+        function change(id, delta) {
+            onthoud(id);
+            const huidig = counts[id];
+            counts[id] = huidig === undefined ? Math.max(0, delta) : Math.max(0, huidig + delta);
+            saveCounts();
+            updateCard(id);
+        }
 
-            fetch(GAS_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    to: 'jop@ilovesla.com',
-                    subject: `SLA UDEA Bestelling ${date}`,
-                    body: emailBodyText,
-                    filename: filename,
-                    excel: wbout
-                })
-            })
-            .then(() => {
-                btn.textContent = '✅ Verzonden!';
-                setTimeout(() => {
-                    btn.textContent = '📧 Verzend Bestelling';
-                    btn.disabled = false;
-                }, 3000);
-            })
-            .catch(() => {
-                btn.textContent = '📧 Verzend Bestelling';
-                btn.disabled = false;
-                alert('Versturen mislukt. Excel is wel gedownload.');
+        // Korte samenvatting van het besteladvies per leverancier, voor de bevestigingsstap
+        function bestelSamenvatting() {
+            const regels = products.map(getBestelRegel).filter(Boolean);
+            const signalen = products.map(p => ({ p, s: getSignaal(p) })).filter(x => x.s);
+            const out = [];
+            if (regels.length === 0) out.push('Geen producten onder MIN — er wordt niets besteld.');
+            const byLev = {};
+            regels.forEach(r => { (byLev[r.p.leverancier] = byLev[r.p.leverancier] || []).push(r); });
+            Object.keys(byLev).sort((a, b) => rang(LEVERANCIER_VOLGORDE, a) - rang(LEVERANCIER_VOLGORDE, b)).forEach(lev => {
+                out.push(lev + ':');
+                byLev[lev].forEach(r => out.push(`  • ${r.p.naam} → ${r.qty}${eenheidTxt(r.p)}`));
+            });
+            if (signalen.length) {
+                out.push('LET OP (niet automatisch besteld):');
+                signalen.forEach(x => out.push(`  • ${x.p.naam}: ${x.s.beschikbaar} beschikbaar, piek ${fmtNum(x.s.max)}`));
+            }
+            return out.join('\n');
+        }
+
+        const XLSX_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        function laadXLSX() {
+            return new Promise((resolve, reject) => {
+                if (typeof XLSX !== 'undefined') return resolve();
+                const s = document.createElement('script');
+                s.src = XLSX_CDN;
+                s.onload = () => (typeof XLSX !== 'undefined' ? resolve() : reject(new Error('xlsx')));
+                s.onerror = () => reject(new Error('xlsx'));
+                document.head.appendChild(s);
             });
         }
 
-        window.doReset = function() {
-            if (confirm('Alle tellingen resetten?')) {
-                // Clear counts object completely
-                for (let key in counts) {
-                    delete counts[key];
+        function exportToExcel() {
+            if (bezigMetVerzenden) return;
+            if (!navigator.onLine) {
+                alert('Geen internetverbinding. De telling blijft bewaard — verzend opnieuw zodra je bereik hebt.');
+                return;
+            }
+            // App offline geopend? Dan is de Excel-module nog niet geladen: nu alsnog ophalen.
+            if (typeof XLSX === 'undefined') {
+                laadXLSX().then(exportToExcel).catch(() => {
+                    alert('De Excel-module kon niet geladen worden. De telling blijft bewaard — probeer het zo opnieuw.');
+                });
+                return;
+            }
+
+            const dag = getBestelDag().toUpperCase();
+
+            // VEILIGHEIDSCHECK: niet-getelde producten met bestelregels tellen als 0
+            // en worden dus tot PAR besteld. Vraag expliciet bevestiging.
+            const nietGeteld = products.filter(p => !isWeekProduct(p) && !p.signaal && !isGeteld(p) && getParMin(p).min > 0);
+            const jkNietGeteld = isWoensdag() ? products.filter(p => isWeekProduct(p) && !isGeteld(p)) : [];
+            const jkNoot = jkNietGeteld.length ? `\n\n(JK-weektelling: ${jkNietGeteld.length} product(en) niet geteld — die worden níet besteld.)` : '';
+            if (nietGeteld.length > 0) {
+                const lijst = nietGeteld.map(p => '• ' + p.naam).join('\n');
+                const doorgaan = confirm(
+                    '⚠️ LET OP: ' + nietGeteld.length + ' product(en) zijn NIET geteld.\n' +
+                    'Deze tellen als voorraad 0 en worden tot PAR besteld:\n\n' + lijst + jkNoot +
+                    '\n\nWeet je zeker dat je wilt verzenden?\n' +
+                    '(Tip: druk op − om een product als "geteld: 0" te markeren.)'
+                );
+                if (!doorgaan) return;
+            } else {
+                if (!confirm(`Bestelling voor ${dag} verzenden naar jop@ en mischa@ilovesla.com?\n\n${bestelSamenvatting()}${jkNoot}`)) return;
+            }
+
+            // Bestelregels voor ALLE leveranciers (JK apart, die heeft een eigen tab en mailsectie)
+            const regels = products.map(getBestelRegel).filter(Boolean);
+            const dagRegels = regels.filter(r => !isWeekProduct(r.p));
+            const signalen = products.map(p => ({ p, s: getSignaal(p) })).filter(x => x.s);
+
+            const allOrders = dagRegels.map(r => ({
+                'Artikelnummer': r.p.artikel || 'Geen nummer',
+                'Naam': r.p.naam,
+                'Huidige Voorraad': r.voorraad,
+                'MIN': r.pm.min,
+                'PAR': r.pm.par,
+                'Te Bestellen': r.qty,
+                'Besteleenheid': r.p.bestelEenheid || '',
+                'Leverancier': r.p.leverancier,
+                'Locatie': r.p.locatie,
+                'Categorie': r.p.categorie
+            }));
+
+            // Alle tellingen voor referentie (alle producten, ook niet-getelde op 0)
+            const allCounts = products
+                .filter(p => !isWeekProduct(p) || isGeteld(p))
+                .map(p => {
+                    const pm = getParMin(p);
+                    const r = getBestelRegel(p);
+                    const s = getSignaal(p);
+                    return {
+                        'Artikelnummer': p.artikel || 'Geen nummer',
+                        'Naam': p.naam,
+                        'Geteld': counts[p.id] || 0,
+                        'Status': isGeteld(p) ? 'geteld' : 'NIET GETELD',
+                        'Tel-eenheid': p.telEenheid || '',
+                        'Leverancier': p.leverancier,
+                        'Locatie': p.locatie,
+                        'Categorie': p.categorie,
+                        'MIN': pm.min || '',
+                        'PAR': pm.par || '',
+                        'Te Bestellen': r ? r.qty : '',
+                        'Let op': s ? `${s.ernstig ? 'tekort' : 'krap'}: ${s.beschikbaar} beschikbaar, piek ${fmtNum(s.max)}` : ''
+                    };
+                });
+
+            if (allOrders.length === 0 && allCounts.length === 0) {
+                return alert('Geen tellingen of bestellingen om te verzenden');
+            }
+
+            // Genereer Excel
+            const wb = XLSX.utils.book_new();
+            const orderCols = [
+                { wch: 15 }, { wch: 40 }, { wch: 15 },
+                { wch: 10 }, { wch: 10 }, { wch: 12 },
+                { wch: 15 }, { wch: 20 }, { wch: 12 }
+            ];
+            const tab = (rows, naam, leegTekst) => {
+                const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ 'Info': leegTekst }]);
+                if (rows.length) ws['!cols'] = orderCols;
+                XLSX.utils.book_append_sheet(wb, ws, naam);
+            };
+
+            // Tab 1: UDEA, Tab 2: POSTUMA, Tab 3: Overige leveranciers
+            tab(allOrders.filter(o => o.Leverancier === 'UDEA'), 'UDEA', 'Geen UDEA bestellingen');
+            tab(allOrders.filter(o => o.Leverancier === 'POSTUMA'), 'POSTUMA', 'Geen POSTUMA bestellingen');
+            tab(allOrders.filter(o => o.Leverancier !== 'UDEA' && o.Leverancier !== 'POSTUMA'), 'Overige', 'Geen overige bestellingen');
+
+            // Tab JK: weektelling schoonmaak/non-food (alleen als er JK geteld is)
+            const jkTelling = products
+                .filter(p => isWeekProduct(p) && isGeteld(p))
+                .map(p => {
+                    const pm = getParMin(p);
+                    const r = getBestelRegel(p);
+                    return {
+                        'Artikelnummer': p.artikel || 'Geen nummer',
+                        'Naam': p.naam,
+                        'Geteld': counts[p.id],
+                        'Tel-eenheid': p.telEenheid || '',
+                        'PAR': pm.par || '',
+                        'MIN': pm.min || '',
+                        'Te Bestellen': r ? r.qty : '',
+                        'Locatie': p.locatie
+                    };
+                });
+            if (jkTelling.length > 0) {
+                const ws = XLSX.utils.json_to_sheet(jkTelling);
+                ws['!cols'] = [{ wch: 12 }, { wch: 50 }, { wch: 8 }, { wch: 16 }, { wch: 6 }, { wch: 6 }, { wch: 12 }, { wch: 12 }];
+                XLSX.utils.book_append_sheet(wb, ws, 'JK Weektelling');
+            }
+
+            // Tab: Alle tellingen
+            if (allCounts.length > 0) {
+                const ws = XLSX.utils.json_to_sheet(allCounts);
+                ws['!cols'] = [
+                    { wch: 15 }, { wch: 40 }, { wch: 10 }, { wch: 14 }, { wch: 15 }, { wch: 18 },
+                    { wch: 14 }, { wch: 10 }, { wch: 6 }, { wch: 6 }, { wch: 12 }, { wch: 40 }
+                ];
+                XLSX.utils.book_append_sheet(wb, ws, 'Alle Tellingen');
+            }
+
+            const date = localDate();
+            const filename = `SLA_Bestelling_${date}.xlsx`;
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+
+            // Mailtekst
+            const lijn = '─'.repeat(50);
+            let body = 'Beste,\n\nHierbij de voorraadtelling en bestelling van SLA Keuken.\n\n';
+            if (dagRegels.length > 0) {
+                body += 'TE BESTELLEN:\n' + lijn + '\n';
+                const byLev = {};
+                dagRegels.forEach(r => { (byLev[r.p.leverancier] = byLev[r.p.leverancier] || []).push(r); });
+                Object.keys(byLev).sort((a, b) => rang(LEVERANCIER_VOLGORDE, a) - rang(LEVERANCIER_VOLGORDE, b)).forEach(lev => {
+                    body += `\n${lev}:\n`;
+                    byLev[lev].forEach(r => {
+                        body += `  ${r.p.artikel ? '[' + r.p.artikel + '] ' : ''}${r.p.naam} — Bestellen: ${r.qty}${eenheidTxt(r.p)} (huidig: ${r.voorraad}, PAR: ${r.pm.par})${r.p.alt ? ' · of ' + (r.p.altNote || r.p.alt) : ''}\n`;
+                    });
+                });
+                body += '\n';
+            } else {
+                body += 'Geen producten onder minimum voorraad.\n\n';
+            }
+            if (signalen.length > 0) {
+                body += 'LET OP — mogelijk tekort (wordt NIET automatisch besteld):\n' + lijn + '\n';
+                signalen.forEach(({ p, s }) => {
+                    body += `  ${p.leverancier} · ${p.naam}: ${s.beschikbaar} beschikbaar${s.vast ? ' (voorraad ' + s.voorraad + ' + vaste levering ' + s.vast + ')' : ''}, vraag ${s.dag} ±${fmtNum(s.gem)} / piek ${fmtNum(s.max)} → ${s.tekort} extra nodig voor de piek\n`;
+                });
+                body += '\n';
+            }
+            if (jkTelling.length > 0) {
+                body += 'JK WEEKTELLING (schoonmaak / non-food):\n' + lijn + '\n';
+                jkTelling.forEach(item => {
+                    body += `  ${item.Naam} — geteld: ${item.Geteld}${item['Te Bestellen'] ? ' → bestellen: ' + item['Te Bestellen'] : ''}\n`;
+                });
+                body += '\n';
+            }
+            body += lijn + '\n';
+            body += `Datum telling: ${date} — geldt voor besteldag ${dag} · PAR/MIN versie ${PARMIN_VERSIE}\n`;
+            body += 'Met vriendelijke groet,\nSLA Keuken';
+
+            // Verstuur naar Google Apps Script via verborgen iframe + form
+            // (omzeilt CORS/redirect-problemen op mobiele browsers).
+            // Het iframe blijft staan tot het antwoord binnen is: eerder weghalen kan het versturen afbreken bij traag bereik.
+            const btn = document.getElementById('exportBtn');
+            bezigMetVerzenden = true;
+            btn.textContent = '⏳ Versturen...';
+            btn.disabled = true;
+
+            const payload = JSON.stringify({
+                to: MAIL_TO,
+                subject: `SLA Bestelling ${date} — voor ${dag}${jkTelling.length > 0 ? ' + JK weektelling' : ''}`,
+                body: body,
+                filename: filename,
+                excel: wbout
+            });
+
+            const iframeName = 'gas_iframe_' + Date.now();
+            const iframe = document.createElement('iframe');
+            iframe.name = iframeName;
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = GAS_URL;
+            form.target = iframeName;
+            form.style.display = 'none';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'payload';
+            input.value = payload;
+            form.appendChild(input);
+            document.body.appendChild(form);
+
+            let klaar = false;
+            let timer = null;
+            const afronden = ok => {
+                if (klaar) return;
+                klaar = true;
+                clearTimeout(timer);
+                setTimeout(() => { form.remove(); iframe.remove(); }, 1500);
+                if (ok) {
+                    btn.textContent = '✅ Verzonden!';
+                    // Excel pas downloaden ná verzenden (download-popup blokkeert anders het versturen op mobiel)
+                    try { XLSX.writeFile(wb, filename); } catch (e) { /* download mislukt: mail is wel verstuurd */ }
+                    store.set('sla-last-sent', String(Date.now()));
+                    renderTelInfo();
+                    setTimeout(() => {
+                        bezigMetVerzenden = false;
+                        updateStats();
+                        // Voorkom dat een oude telling later als nieuwe doorgaat
+                        if (confirm('Telling verzonden. Tellingen wissen voor de volgende telling?')) {
+                            clearCounts();
+                            renderProducts();
+                        }
+                    }, 2500);
+                } else {
+                    btn.textContent = '⚠️ Geen bevestiging';
+                    setTimeout(() => {
+                        bezigMetVerzenden = false;
+                        updateStats();
+                        if (confirm('Geen bevestiging van de mailserver ontvangen (na 45 sec).\nDe telling blijft bewaard. Kijk of de mail binnenkomt; zo niet, verzend opnieuw.\n\nExcel nu als back-up downloaden?')) {
+                            try { XLSX.writeFile(wb, filename); } catch (e) { /* negeren */ }
+                        }
+                    }, 300);
                 }
-                counts = {};
-                
-                // Remove from localStorage
-                localStorage.removeItem('sla-counts');
-                
-                // Force re-render
+            };
+            // Het lege iframe (about:blank) kan zelf ook een load-event geven: dat negeren we.
+            // Na het antwoord van Google is het iframe cross-origin en gooit het uitlezen van de URL een fout.
+            iframe.addEventListener('load', () => {
+                let leeg = false;
+                try { leeg = iframe.contentWindow.location.href === 'about:blank'; } catch (e) { leeg = false; }
+                if (!leeg) afronden(true);
+            });
+            timer = setTimeout(() => afronden(false), 45000);
+            form.submit();
+        }
+
+        function doReset() {
+            if (confirm('Alle tellingen resetten?')) {
+                clearCounts();
+                vastgehouden.clear();
                 renderProducts();
             }
         }
 
+        function setWeergave(v) {
+            weergave = v;
+            store.set('sla-weergave', v);
+            document.querySelectorAll('.view-toggle button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+        }
+
+        // ---------- events
         document.getElementById('searchInput').addEventListener('input', e => {
-            searchTerm = e.target.value;
+            searchTerm = e.target.value.trim();
             renderProducts();
         });
 
         document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                currentFilter = e.target.dataset.filter;
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                vastgehouden = new Set();
                 renderProducts();
             });
         });
 
-        document.getElementById('exportBtn').addEventListener('click', exportToExcel);
-
-        // Initialize
-        loadCounts();
-        
-        // Check if we have old data format (using artikel instead of id)
-        const hasOldFormat = Object.keys(counts).some(key => {
-            return !key.includes('-') && key !== '';
+        document.querySelectorAll('.view-toggle button').forEach(btn => {
+            btn.addEventListener('click', () => { setWeergave(btn.dataset.view); renderProducts(); });
         });
-        
-        if (hasOldFormat) {
-            counts = {};
-            localStorage.removeItem('sla-counts');
-        }
-        
+
+        const container = document.getElementById('productsContainer');
+        container.addEventListener('click', e => {
+            const btn = e.target.closest('[data-act]');
+            if (!btn) return;
+            const id = btn.closest('.product-item').dataset.id;
+            change(id, btn.dataset.act === 'plus' ? 1 : -1);
+        });
+        container.addEventListener('change', e => {
+            if (!e.target.classList.contains('counter-value')) return;
+            setCount(e.target.closest('.product-item').dataset.id, e.target.value);
+        });
+        container.addEventListener('focusin', e => {
+            if (e.target.classList.contains('counter-value')) e.target.select();
+        });
+        container.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && e.target.classList.contains('counter-value')) e.target.blur();
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+        document.getElementById('resetBtn').addEventListener('click', doReset);
+
+        // ---------- start
+        loadCounts();
+
+        // Oud dataformaat (artikelnummer i.p.v. id) -> wissen
+        if (Object.keys(counts).some(key => !key.includes('-') && key !== '')) clearCounts();
+
+        // Hernoemde producten meenemen, verdwenen producten opruimen (tijdstempel van de telling blijft staan)
+        (function migreerTelling() {
+            let gewijzigd = false;
+            Object.entries(ID_MIGRATIE).forEach(([oud, nieuw]) => {
+                if (counts[oud] !== undefined) {
+                    if (counts[nieuw] === undefined) counts[nieuw] = counts[oud];
+                    delete counts[oud];
+                    gewijzigd = true;
+                }
+            });
+            const ids = new Set(products.map(p => p.id));
+            Object.keys(counts).forEach(k => { if (!ids.has(k)) { delete counts[k]; gewijzigd = true; } });
+            if (gewijzigd) store.set('sla-counts', JSON.stringify(counts));
+        })();
+
+        // Oude telling (>12 uur) nog aanwezig? Vraag of die weg mag, anders telt hij mee als nieuwe telling.
+        (function checkOudeTelling() {
+            const updated = parseInt(store.get('sla-counts-updated') || '0', 10);
+            const n = Object.keys(counts).length;
+            if (n > 0 && updated && Date.now() - updated > 12 * 60 * 60 * 1000) {
+                if (confirm(`Er staat nog een telling van ${localDateTime(new Date(updated))} (${n} producten).\nWissen en opnieuw beginnen?`)) {
+                    clearCounts();
+                }
+            }
+        })();
+
+        setWeergave(weergave);
+        renderTelInfo();
         renderProducts();
+
+        // Besteldag wisselt om 13:00 — ververs als de app open blijft staan
+        let laatsteBestelDag = getBestelDag();
+        setInterval(() => {
+            if (getBestelDag() !== laatsteBestelDag) {
+                laatsteBestelDag = getBestelDag();
+                renderTelInfo();
+                renderProducts();
+            }
+        }, 60000);
+
+        // Offline: sw.js (naast index.html) bewaart de app, zodat hij ook zonder bereik opent.
+        // Staat sw.js er niet, dan gebeurt er niets.
+        if ('serviceWorker' in navigator && location.protocol === 'https:') {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+        }
     </script>
 </body>
 </html>
