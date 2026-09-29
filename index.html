@@ -425,19 +425,19 @@
             { id: 'udea-cocodelight', artikel: '6001863', naam: 'COCO DAILY DELIGHT VANILLE bak (350 ml)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 11, min: 9, slabase: '6009', vraag: { di: [4.1, 9], do: [3.1, 5], za: [3.3, 7] } }, // SLAbase 6009: dagpiek 9 (DI 9, DO 5, ZA 7) x 1.2 | Udea-artikelnummer 6001863 (stond op 9700 -> werkte niet in de Udea-upload)
 
             // ── DKW · UDEA · MAGAZIJN
-            { id: 'udea-1120', artikel: '1120', naam: 'MELK vers per liter (1x1 liter)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 24, min: 18, bestelVeelvoud: 6, slabase: '9071', vraag: { di: [13.1, 18], do: [13.3, 18], za: [10.2, 14] } }, // SLAbase 9071: dagpiek 18 (DI 18, DO 18, ZA 14) x 1.2 | bestel altijd per 6, naar boven afgerond
+            { id: 'udea-1120', artikel: '1120', naam: 'MELK vers per liter (1x1 liter)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 24, min: 18, bestelVeelvoud: 6, slabase: '9071', vraag: { di: [13.1, 18], do: [13.3, 18], za: [10.2, 14] } }, // SLAbase 9071: dagpiek 18 (DI 18, DO 18, ZA 14) x 1.2 | bestel altijd per 6, naar boven afgerond
             { id: 'udea-5009384', artikel: '5009384', naam: 'BLOEMENHONING knijpfles (1x500 gram) (bestel per 6 voor SVE korting)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 6, min: 2, specialOrder: 6, slabase: '9026', vraag: { do: [1, 1] } }, // SLAbase 9026: DO gem 1 / max 1
             { id: 'udea-5011082', artikel: '5011082', naam: 'GEPELD HENNEPZAAD (8x500 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 3, min: 2 }, // SLAbase 9028 is zak 250 g -> eenheid wijkt af, waarden ongewijzigd
             { id: 'udea-91820', artikel: '91820', naam: 'MAIS per pak (6x340 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 21, min: 14, slabase: '9017', vraag: { di: [10.6, 13], do: [7.5, 10], za: [12, 14] } }, // SLAbase 9017: dagpiek 14 (DI 13, DO 10, ZA 14) x 1.5
             { id: 'udea-amandeldrink', artikel: '5009329', naam: 'AMANDELDRINK (Rude Health) pak 1 liter', leverancier: 'UDEA', alt: 'JET DRINKS', altNote: 'Jet Drinks per pallet', locatie: 'MAGAZIJN', categorie: 'DKW', par: 36, min: 24, telEenheid: 'pak (1 liter)', bestelFactor: 6, bestelEenheid: 'tray (6x1 liter)', slabase: '9065', vraag: { di: [9, 12], do: [21, 24], za: [6.6, 12] } }, // SLAbase 9065: dagpiek 24 (DI 12, DO 24, ZA 12) x 1.5 | per 28-09-2026: Udea per tray (6x1 L), Jet Drinks per pallet; PAR/MIN in liters (pakken)
-            { id: 'udea-kokosdrink', artikel: '5009633', naam: 'KOKOSDRINK (Rude Health) pak 1 liter', leverancier: 'UDEA', alt: 'JET DRINKS', altNote: 'Jet Drinks per pallet', locatie: 'MAGAZIJN', categorie: 'DKW', par: 48, min: 30, telEenheid: 'pak (1 liter)', bestelFactor: 6, bestelEenheid: 'tray (6x1 liter)', slabase: '9064', vraag: { di: [12.6, 24], do: [21.6, 30], za: [18, 18] } }, // SLAbase 9064: dagpiek 30 (DI 24, DO 30, ZA 18) x 1.5 | per 28-09-2026: Udea per tray (6x1 L), Jet Drinks per pallet; PAR/MIN in liters (pakken)
+            { id: 'udea-kokosdrink', artikel: '5009633', naam: 'KOKOSDRINK (Rude Health) pak 1 liter', leverancier: 'UDEA', alt: 'JET DRINKS', altNote: 'Jet Drinks per pallet', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 48, min: 30, telEenheid: 'pak (1 liter)', bestelFactor: 6, bestelEenheid: 'tray (6x1 liter)', slabase: '9064', vraag: { di: [12.6, 24], do: [21.6, 30], za: [18, 18] } }, // SLAbase 9064: dagpiek 30 (DI 24, DO 30, ZA 18) x 1.5 | per 28-09-2026: Udea per tray (6x1 L), Jet Drinks per pallet; PAR/MIN in liters (pakken)
 
-            // ── DKW · JET DRINKS · MAGAZIJN
-            { id: 'jet-kokoswater', artikel: '9050', naam: 'KOKOSWATER RAW per 8 flesjes', leverancier: 'JET DRINKS', locatie: 'MAGAZIJN', categorie: 'DKW', par: 40, min: 16 }, // Jet Drinks per pallet; MIN 8 -> 16: dekte de donderdagpiek niet (SLAbase 9050: max 10 x 12 flesjes/week). Eenheid 8 vs 12 flesjes checken
+            // ── DKW · JET DRINKS · ORDERPICK CEL
+            { id: 'jet-kokoswater', artikel: '9050', naam: 'KOKOSWATER RAW per 8 flesjes', leverancier: 'JET DRINKS', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 40, min: 16 }, // Jet Drinks per pallet; MIN 8 -> 16: dekte de donderdagpiek niet (SLAbase 9050: max 10 x 12 flesjes/week). Eenheid 8 vs 12 flesjes checken
 
             // ── DKW · UDEA · MAGAZIJN
             { id: 'udea-appelsap', artikel: '94762', naam: 'APPELSAP natuurtroebel krat (12x200ml)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 15, min: 10, slabase: '9056', vraag: { do: [6.5, 10] } }, // SLAbase 9056: dagpiek 10 (DO 10) x 1.5
-            { id: 'udea-rodebiet', artikel: '11960', naam: 'GEKOOKTE RODE BIET vacuüm (1x500 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 11, min: 7, slabase: '8011', vraag: { di: [1.3, 2], do: [4.6, 7], za: [4, 7] } }, // SLAbase 8011: dagpiek 7 (DI 2, DO 7, ZA 7) x 1.5
+            { id: 'udea-rodebiet', artikel: '11960', naam: 'GEKOOKTE RODE BIET vacuüm (1x500 gram)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 11, min: 7, slabase: '8011', vraag: { di: [1.3, 2], do: [4.6, 7], za: [4, 7] } }, // SLAbase 8011: dagpiek 7 (DI 2, DO 7, ZA 7) x 1.5
             { id: 'udea-iceatea', artikel: '5006971', naam: 'ICE TEA GREEN (ChariTea) tray 12x330ml', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 17, min: 11, slabase: '9057', vraag: { di: [1, 1], do: [8.7, 11] } }, // SLAbase 9057: dagpiek 11 (DI 1, DO 11) x 1.5
             { id: 'udea-spirulina', artikel: '5016195', naam: 'RAW SPIRULINA POEDER per zak (bestel per 6 voor SVE korting)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 6, min: 2, specialOrder: 6, slabase: '9008', vraag: { di: [2, 2], do: [1, 1], za: [1, 1] } }, // SLAbase 9008: DI gem 2 / max 2, DO gem 1 / max 1, ZA gem 1 / max 1
             { id: 'udea-earlgrey', artikel: '5014500', naam: 'Simon Levelt Thee - Earl Grey (6x90gr)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 2, min: 1, slabase: '9036', vraag: { di: [1, 1], za: [1, 1] } }, // SLAbase 9036: DI gem 1 / max 1, ZA gem 1 / max 1
@@ -476,16 +476,16 @@
             // ── DKW · SOLSTICE · MAGAZIJN
             { id: 'solstice-matcha', artikel: '', naam: 'MATCHA', leverancier: 'SOLSTICE', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0 },
 
-            // ── DKW · BAIN BREWING · MAGAZIJN
-            { id: 'bain-gingershot', artikel: '', naam: 'GINGER SHOT doos (15 shots)', leverancier: 'BAIN BREWING', locatie: 'MAGAZIJN', categorie: 'DKW', par: 8, min: 6, slabase: '9076', vraag: { do: [4.4, 6] } }, // SLAbase 9076: dagpiek 6 (DO 6) x 1.2
-            { id: 'bain-kombucha', artikel: '', naam: 'KOMBUCHA doos (24 flessen)', leverancier: 'BAIN BREWING', locatie: 'MAGAZIJN', categorie: 'DKW', par: 12, min: 8, slabase: '9061', vraag: { di: [1, 1], do: [6.1, 8], za: [1, 1] } }, // SLAbase 9061: dagpiek 8 (DI 1, DO 8, ZA 1) x 1.5
+            // ── DKW · BAIN BREWING · ORDERPICK CEL
+            { id: 'bain-gingershot', artikel: '', naam: 'GINGER SHOT doos (15 shots)', leverancier: 'BAIN BREWING', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 8, min: 6, slabase: '9076', vraag: { do: [4.4, 6] } }, // SLAbase 9076: dagpiek 6 (DO 6) x 1.2
+            { id: 'bain-kombucha', artikel: '', naam: 'KOMBUCHA doos (24 flessen)', leverancier: 'BAIN BREWING', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 12, min: 8, slabase: '9061', vraag: { di: [1, 1], do: [6.1, 8], za: [1, 1] } }, // SLAbase 9061: dagpiek 8 (DI 1, DO 8, ZA 1) x 1.5
 
             // ── DKW · STEANS · MAGAZIJN
             { id: 'steans-koffie', artikel: '9033', naam: 'KOFFIE BONEN TATU zak (1 kg)', leverancier: 'STEANS', locatie: 'MAGAZIJN', categorie: 'DKW', par: 30, min: 6, slabase: '9033', vraag: { di: [2, 2], do: [4.4, 6], za: [2.5, 4] } }, // SLAbase 9033: DI gem 2 / max 2, DO gem 4.4 / max 6, ZA gem 2.5 / max 4 | hele week zelfde PAR/MIN, per Jop 03-07
             { id: 'steans-decaf', artikel: '9034', naam: 'KOFFIE DECAF zak (0,5 kg)', leverancier: 'STEANS', locatie: 'MAGAZIJN', categorie: 'DKW', par: 10, min: 3, slabase: '9034', vraag: { di: [1.4, 2], do: [1, 1], za: [1, 1] } }, // SLAbase 9034: DI gem 1.4 / max 2, DO gem 1 / max 1, ZA gem 1 / max 1 | per Jop 03-07
 
-            // ── VIS · Jan Veerman · ORDERPICK CEL
-            { id: 'veerman-zalm', artikel: '', naam: 'WARMGEROOKTE ZALM 1 kg', leverancier: 'Jan Veerman', locatie: 'ORDERPICK CEL', categorie: 'VIS', par: 0, min: 0 },
+            // ── VIS · Jan Veerman · VRIEZER
+            { id: 'veerman-zalm', artikel: '', naam: 'WARMGEROOKTE ZALM 1 kg', leverancier: 'Jan Veerman', locatie: 'VRIEZER', categorie: 'VIS', par: 0, min: 0 },
 
             // ── ZOET · Dateables · ORDERPICK CEL
             { id: 'dateables-cocos', artikel: '', naam: 'DATEABLES BITE ME! (COCOS) bak (25 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, slabase: '7008', vraag: { di: [2.9, 6], do: [2.8, 5], za: [1.6, 2] }, signaal: true }, // SLAbase 7008: DI gem 2.9 / max 6, DO gem 2.8 / max 5, ZA gem 1.6 / max 2
