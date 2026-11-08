@@ -2,7 +2,7 @@
 // Zet dit bestand naast index.html (zelfde map op GitHub Pages).
 // App-pagina: eerst internet (altijd de nieuwste versie), zonder bereik de bewaarde versie.
 // Excel-module (cdnjs): uit de cache, want die verandert niet.
-const CACHE = 'sla-telapp-2026-09-28';
+const CACHE = 'sla-telapp-2026-11-08';
 const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 
 self.addEventListener('install', event => {

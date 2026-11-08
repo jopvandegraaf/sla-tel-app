@@ -387,7 +387,8 @@
                 <li><b>Houdbaar</b> (appel, citrus, wortel, bieten, selderij, dranken, mais, diepvries): MIN = drukste productiedag, PAR = MIN + 50%.</li>
                 <li><b>JK (woensdag):</b> MIN ≈ een normale week, PAR ≈ twee weken en minstens de grootste weekbestelling. Alleen winkelvraag — eigen keukenverbruik zit er niet in.</li>
                 <li><b>Vaste afspraken blijven:</b> koffie, koriander, gember, perssinaasappel, honing, spirulina, thee, hennepzaad, edamame (1× per 2 weken), bananen, brood.</li>
-                <li><b>Alleen tellen + ⚠️ signaal:</b> granaatappel (vaste levering), eieren en Dateables. Zit de voorraad (plus vaste levering) onder de piek, dan staat dat in de mail onder „LET OP”. Pita, matcha en zalm worden alleen geteld.</li>
+                <li><b>Alleen tellen + ⚠️ signaal:</b> granaatappel (vaste levering) en eieren. Zit de voorraad (plus vaste levering) onder de piek, dan staat dat in de mail onder „LET OP”. Pita, matcha en zalm worden alleen geteld.</li>
+                <li><b>Dateables (bakjes van 10, 08-11-2026):</b> één weekbestelling bij Dateables (bestellen vóór vr 11:00, ophalen zo). De telling van do-avond t/m za-ochtend geeft het besteladvies: aanvullen tot PAR = een week winkelvraag + de zondaglevering + buffer (Coco 22, Berry 18, Matcha 13 bakjes). Andere dagen: alleen ⚠️ signaal als de voorraad onder de piek van de volgende levering zit.</li>
             </ul>
         </details>
     </div>
@@ -405,6 +406,8 @@
         // PAR/MIN in tel-eenheden (of in PAR-eenheden bij telFactor). vraag = winkelbestellingen uit SLAbase
         // per productiedag [gemiddeld (gewogen), maximum], in dezelfde eenheid als PAR/MIN; vraag.wk = per week (JK).
         // signaal: true = app bestelt niet zelf, maar geeft een waarschuwing als voorraad (+ vasteLevering) < piek.
+        //   Uitzondering: heeft een signaalproduct een dagPar voor de besteldag (Dateables: za = weekbestelling),
+        //   dan bestelt de app die dag wél (alleen als het product echt geteld is) en vervalt het signaal.
         // alt = tweede leverancier (Rude Health: Udea per tray, Jet Drinks per pallet).
         const products = [
             // ── AGF · UDEA · ORDERPICK CEL
@@ -488,9 +491,9 @@
             { id: 'veerman-zalm', artikel: '', naam: 'WARMGEROOKTE ZALM 1 kg', leverancier: 'Jan Veerman', locatie: 'VRIEZER', categorie: 'VIS', par: 0, min: 0 },
 
             // ── ZOET · Dateables · ORDERPICK CEL
-            { id: 'dateables-cocos', artikel: '', naam: 'DATEABLES BITE ME! (COCOS) bak (25 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, slabase: '7008', vraag: { di: [2.9, 6], do: [2.8, 5], za: [1.6, 2] }, signaal: true }, // SLAbase 7008: DI gem 2.9 / max 6, DO gem 2.8 / max 5, ZA gem 1.6 / max 2
-            { id: 'dateables-matcha', artikel: '', naam: 'DATEABLES MATCHA! bak (25 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, slabase: '7010', vraag: { di: [2.7, 5], do: [1.7, 2], za: [1.8, 3] }, signaal: true }, // SLAbase 7010: DI gem 2.7 / max 5, DO gem 1.7 / max 2, ZA gem 1.8 / max 3 | vervangt DATEABLES ALMOND (niet meer besteld in SLAbase)
-            { id: 'dateables-berry', artikel: '', naam: 'DATEABLES BERRY! bak (25 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, slabase: '7011', vraag: { di: [3.1, 4], do: [1.6, 3], za: [1.7, 2] }, signaal: true }, // SLAbase 7011: DI gem 3.1 / max 4, DO gem 1.6 / max 3, ZA gem 1.7 / max 2 | vervangt DATEABLES SESAM (niet meer besteld in SLAbase)
+            { id: 'dateables-cocos', artikel: '', naam: 'DATEABLES BITE ME! (COCOS) bak (10 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, dagPar: { za: { par: 22, min: 22 } }, slabase: '7008', vraag: { di: [5.3, 7], do: [3.7, 5], za: [5.0, 6] }, signaal: true }, // 08-11-2026: bak van 10 (was 25). SLAbase 7008 sinds 19-10, in bakjes van 10: levering wo gem 5.3/max 7, vr 3.7/5, zo 5.0/6 = ~14 per week. Weekbestelling bij Dateables (vr 11:00, ophalen zo): PAR za = week + zondag + 3 buffer
+            { id: 'dateables-matcha', artikel: '', naam: 'DATEABLES MATCHA! bak (10 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, dagPar: { za: { par: 13, min: 13 } }, slabase: '7010', vraag: { di: [3.3, 6], do: [3.0, 4], za: [2.3, 3] }, signaal: true }, // 08-11-2026: bak van 10 (was 25). SLAbase 7010 sinds 19-10, in bakjes van 10: levering wo gem 3.3/max 6, vr 3.0/4, zo 2.3/3 = ~9 per week. PAR za = week + zondag + 2 buffer
+            { id: 'dateables-berry', artikel: '', naam: 'DATEABLES BERRY! bak (10 st)', leverancier: 'Dateables', locatie: 'ORDERPICK CEL', categorie: 'ZOET', par: 0, min: 0, dagPar: { za: { par: 18, min: 18 } }, slabase: '7011', vraag: { di: [3.3, 7], do: [4.5, 5], za: [4.0, 7] }, signaal: true }, // 08-11-2026: bak van 10 (was 25). SLAbase 7011 sinds 19-10, in bakjes van 10: levering wo gem 3.3/max 7, vr 4.5/5, zo 4.0/7 = ~12 per week. PAR za = week + zondag + 2 buffer
 
             // ── NON-FOOD · JK VERPAKKINGEN · MAGAZIJN — WEEKTELLING (woensdag)
             { id: 'jk-kookzakken', artikel: '', naam: 'KOOKZAKKEN keuken kip', leverancier: 'JK VERPAKKINGEN', locatie: 'MAGAZIJN', categorie: 'NON-FOOD', par: 0, min: 0, telEenheid: 'zak (100 stuks)', ritme: 'week' },
@@ -617,6 +620,9 @@
         }
 
         // Haal PAR/MIN op voor een product (dag-specifiek als beschikbaar)
+        // Heeft dit product een eigen PAR/MIN voor de eerstvolgende besteldag?
+        function heeftDagPar(p) { return !!(p.dagPar && p.dagPar[getBestelDag()]); }
+
         function getParMin(p) {
             const dag = getBestelDag();
             if (p.dagPar && p.dagPar[dag]) {
@@ -674,7 +680,7 @@
         // Niet-getelde producten tellen als 0 (de verzendknop waarschuwt daarvoor),
         // behalve JK: die wordt alleen besteld als hij echt geteld is. Signaalproducten bestellen nooit.
         function getBestelRegel(p) {
-            if (p.signaal) return null;
+            if (p.signaal && !(isGeteld(p) && heeftDagPar(p))) return null;
             if (isWeekProduct(p) && !isGeteld(p)) return null;
             const pm = getParMin(p);
             if (!(pm.min > 0)) return null;
@@ -696,7 +702,7 @@
 
         // Tekortsignaal voor producten die de app niet zelf bestelt (vaste levering, eieren, Dateables)
         function getSignaal(p) {
-            if (!p.signaal || !isGeteld(p)) return null;
+            if (!p.signaal || !isGeteld(p) || heeftDagPar(p)) return null;
             const v = getVraag(p);
             if (!v || !(v.max > 0)) return null;
             const dag = getBestelDag();
