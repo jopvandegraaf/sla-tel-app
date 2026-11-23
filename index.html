@@ -332,7 +332,7 @@
     <div class="container">
         <header class="header">
             <h1>SLA Keuken Orderpick Voorraad</h1>
-            <p>Tel na de orderpick en verzend de bestelling · PAR/MIN versie 28-09-2026</p>
+            <p>Tel na de orderpick en verzend de bestelling · PAR/MIN versie 22-11-2026</p>
             <div class="tel-info" id="telInfo"></div>
         </header>
 
@@ -388,6 +388,7 @@
                 <li><b>JK (woensdag):</b> MIN ≈ een normale week, PAR ≈ twee weken en minstens de grootste weekbestelling. Alleen winkelvraag — eigen keukenverbruik zit er niet in.</li>
                 <li><b>Vaste afspraken blijven:</b> koffie, koriander, gember, perssinaasappel, honing, spirulina, thee, hennepzaad, edamame (1× per 2 weken), bananen, brood.</li>
                 <li><b>Alleen tellen + ⚠️ signaal:</b> granaatappel (vaste levering) en eieren. Zit de voorraad (plus vaste levering) onder de piek, dan staat dat in de mail onder „LET OP”. Pita, matcha en zalm worden alleen geteld.</li>
+                <li><b>Nieuw menu HW26/27 (22-11-2026):</b> edamame, mais, coco daily delight en mangopuree zijn uit het assortiment: de app bestelt ze niet meer, je telt alleen nog de restvoorraad. Rucola, munt en platte peterselie zijn nieuw: alleen tellen, PAR en MIN volgen zodra er twee weken winkelbestellingen zijn.</li>
                 <li><b>Dateables (bakjes van 10, 08-11-2026):</b> één weekbestelling bij Dateables (bestellen vóór vr 11:00, ophalen zo). De telling van do-avond t/m za-ochtend geeft het besteladvies: aanvullen tot PAR = een week winkelvraag + de zondaglevering + buffer (Coco 22, Berry 18, Matcha 13 bakjes). Andere dagen: alleen ⚠️ signaal als de voorraad onder de piek van de volgende levering zit.</li>
             </ul>
         </details>
@@ -401,7 +402,7 @@
     </div>
 
     <script>
-        const PARMIN_VERSIE = '28-09-2026';
+        const PARMIN_VERSIE = '22-11-2026';
 
         // PAR/MIN in tel-eenheden (of in PAR-eenheden bij telFactor). vraag = winkelbestellingen uit SLAbase
         // per productiedag [gemiddeld (gewogen), maximum], in dezelfde eenheid als PAR/MIN; vraag.wk = per week (JK).
@@ -425,13 +426,13 @@
 
             // ── DKW · UDEA · ORDERPICK CEL
             { id: 'udea-feta', artikel: '23941', naam: 'FETA BLOKJES emmer 2 kg', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 28, min: 23, slabase: '4013', vraag: { di: [9.7, 14], do: [10.4, 12], za: [19.8, 23] } }, // SLAbase 4013: dagpiek 23 (DI 14, DO 12, ZA 23) x 1.2
-            { id: 'udea-cocodelight', artikel: '6001863', naam: 'COCO DAILY DELIGHT VANILLE bak (350 ml)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 11, min: 9, slabase: '6009', vraag: { di: [4.1, 9], do: [3.1, 5], za: [3.3, 7] } }, // SLAbase 6009: dagpiek 9 (DI 9, DO 5, ZA 7) x 1.2 | Udea-artikelnummer 6001863 (stond op 9700 -> werkte niet in de Udea-upload)
+            { id: 'udea-cocodelight', artikel: '6001863', naam: 'COCO DAILY DELIGHT VANILLE bak (350 ml) — UIT ASSORTIMENT', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 0, min: 0, slabase: '6009' }, // HW26/27 (22-11-2026): uitgestroomd met de Summer smoothie, SLAbase 6009 niet leverbaar -> alleen restvoorraad tellen, niet bestellen (was PAR 11 / MIN 9)
 
             // ── DKW · UDEA · MAGAZIJN
             { id: 'udea-1120', artikel: '1120', naam: 'MELK vers per liter (1x1 liter)', leverancier: 'UDEA', locatie: 'ORDERPICK CEL', categorie: 'DKW', par: 24, min: 18, bestelVeelvoud: 6, slabase: '9071', vraag: { di: [13.1, 18], do: [13.3, 18], za: [10.2, 14] } }, // SLAbase 9071: dagpiek 18 (DI 18, DO 18, ZA 14) x 1.2 | bestel altijd per 6, naar boven afgerond
             { id: 'udea-5009384', artikel: '5009384', naam: 'BLOEMENHONING knijpfles (1x500 gram) (bestel per 6 voor SVE korting)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 6, min: 2, specialOrder: 6, slabase: '9026', vraag: { do: [1, 1] } }, // SLAbase 9026: DO gem 1 / max 1
             { id: 'udea-5011082', artikel: '5011082', naam: 'GEPELD HENNEPZAAD (8x500 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 3, min: 2 }, // SLAbase 9028 is zak 250 g -> eenheid wijkt af, waarden ongewijzigd
-            { id: 'udea-91820', artikel: '91820', naam: 'MAIS per pak (6x340 gram)', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 21, min: 14, slabase: '9017', vraag: { di: [10.6, 13], do: [7.5, 10], za: [12, 14] } }, // SLAbase 9017: dagpiek 14 (DI 13, DO 10, ZA 14) x 1.5
+            { id: 'udea-91820', artikel: '91820', naam: 'MAIS per pak (6x340 gram) — UIT ASSORTIMENT', leverancier: 'UDEA', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0, slabase: '9017' }, // HW26/27 (22-11-2026): mais zit niet meer in de Hot Mexicana, SLAbase 9017 niet leverbaar -> alleen restvoorraad tellen, niet bestellen (was PAR 21 / MIN 14)
             { id: 'udea-amandeldrink', artikel: '5009329', naam: 'AMANDELDRINK (Rude Health) pak 1 liter', leverancier: 'UDEA', alt: 'JET DRINKS', altNote: 'Jet Drinks per pallet', locatie: 'MAGAZIJN', categorie: 'DKW', par: 36, min: 24, telEenheid: 'pak (1 liter)', bestelFactor: 6, bestelEenheid: 'tray (6x1 liter)', slabase: '9065', vraag: { di: [9, 12], do: [21, 24], za: [6.6, 12] } }, // SLAbase 9065: dagpiek 24 (DI 12, DO 24, ZA 12) x 1.5 | per 28-09-2026: Udea per tray (6x1 L), Jet Drinks per pallet; PAR/MIN in liters (pakken)
             { id: 'udea-kokosdrink', artikel: '5009633', naam: 'KOKOSDRINK (Rude Health) pak 1 liter', leverancier: 'UDEA', alt: 'JET DRINKS', altNote: 'Jet Drinks per pallet', locatie: 'MAGAZIJN', categorie: 'DKW', par: 48, min: 30, telEenheid: 'pak (1 liter)', bestelFactor: 6, bestelEenheid: 'tray (6x1 liter)', slabase: '9064', vraag: { di: [12.6, 24], do: [21.6, 30], za: [18, 18] } }, // SLAbase 9064: dagpiek 30 (DI 24, DO 30, ZA 18) x 1.5 | per 28-09-2026: Udea per tray (6x1 L), Jet Drinks per pallet; PAR/MIN in liters (pakken)
 
@@ -452,7 +453,7 @@
             { id: 'udea-mango', artikel: '1267', naam: 'MANGO BLOKJES doos (10x300 gram) — uitgifte per zak 300 gr', leverancier: 'UDEA', locatie: 'VRIEZER', categorie: 'DKW', par: 3, min: 2, slabase: '0004', vraag: { di: [1, 1.6], do: [0.6, 0.8], za: [0.4, 0.7] } }, // SLAbase 0004: dagpiek 1.6 (DI 1.6, DO 0.8, ZA 0.7) x 1.5 | tel en bestel per doos, uitgifte aan winkels per zak 300 gr
 
             // ── DKW · DUN YONG · VRIEZER
-            { id: 'udea-edamame', artikel: '', naam: 'EDAMAME DIEPVRIES zak (400 gram)', leverancier: 'DUN YONG', locatie: 'VRIEZER', categorie: 'DKW', par: 300, min: 100, telFactor: 20, telEenheid: 'doos (20 zakken)', bestelFactor: 20, bestelEenheid: 'doos (20 zakken)', slabase: '0001', vraag: { di: [42.5, 48], do: [44.5, 50], za: [62.4, 65] } }, // SLAbase 0001: DI gem 42.5 / max 48, DO gem 44.5 / max 50, ZA gem 62.4 / max 65 | bestelritme 1x per 2 weken (per Jop 14-07). PAR 300 = ~2 wkn vraag (gem 149 zakken/wk t/m 25-09, was 109), MIN 100 = ~4-5 dagen. PAR/MIN in zakken
+            { id: 'udea-edamame', artikel: '', naam: 'EDAMAME DIEPVRIES zak (400 gram) — UIT ASSORTIMENT', leverancier: 'DUN YONG', locatie: 'VRIEZER', categorie: 'DKW', par: 0, min: 0, telFactor: 20, telEenheid: 'doos (20 zakken)', bestelFactor: 20, bestelEenheid: 'doos (20 zakken)', slabase: '0001' }, // HW26/27 (22-11-2026): edamame zit in geen enkel gerecht meer, SLAbase 0001 niet leverbaar -> alleen restvoorraad tellen, niet bestellen (was PAR 300 / MIN 100 zakken)
 
             // ── BROOD · VANMENNO · VRIEZER
             { id: 'vhc-brood', artikel: '', naam: 'DESEMBROOD WIT streng per 8 (10 strengen per doos)', leverancier: 'VANMENNO', locatie: 'VRIEZER', categorie: 'BROOD', par: 20, min: 8 }, // SLAbase 0007 is doos (80 x 50 g): max 6/dag, 10/week -> MIN 8 dekt dat als de telling per doos is
@@ -466,12 +467,15 @@
             { id: 'postuma-romaine', artikel: '', naam: 'ROMAINE KRAT 10 stuks', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 42, min: 38, dagPar: { di: { par: 38, min: 34 }, do: { par: 33, min: 30 }, za: { par: 42, min: 38 } }, slabase: '8002', vraag: { di: [26.1, 34], do: [24.8, 30], za: [37.1, 38] } }, // SLAbase 8002: DI gem 26.1 / max 34, DO gem 24.8 / max 30, ZA gem 37.1 / max 38
             { id: 'postuma-avocado', artikel: '', naam: 'AVOCADO 18 stuks per doos', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 21, min: 19, dagPar: { di: { par: 21, min: 19 }, do: { par: 16, min: 14 }, za: { par: 21, min: 19 } }, slabase: '8006', vraag: { di: [17, 19], do: [11.4, 14], za: [17, 19] } }, // SLAbase 8006: DI gem 17 / max 19, DO gem 11.4 / max 14, ZA gem 17 / max 19
             { id: 'postuma-koriander', artikel: '', naam: 'KORIANDER doos (20 bos)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 2, min: 1 }, // per Jop 03-07: bij <=1 doos aanvullen tot 2 (SLAbase 8018: max 16 bos/dag < 1 doos)
+            { id: 'postuma-rucola', artikel: '', naam: 'RUCOLA gewassen doos (1 kg)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0, slabase: '8030' }, // NIEUW HW26/27 (22-11-2026), SLAbase 8030: nog geen winkelvraag gemeten -> alleen tellen; PAR/MIN volgt na twee weken bestellingen
+            { id: 'postuma-munt', artikel: '572.303', naam: 'MUNT tempex (20 bos)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0, slabase: '8031' }, // NIEUW HW26/27 (22-11-2026), SLAbase 8031 per bos (munt-peterselie mix): alleen tellen; PAR/MIN volgt
+            { id: 'postuma-peterselie', artikel: '572.321', naam: 'PLATTE PETERSELIE tempex (20 bos)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0, slabase: '8032' }, // NIEUW HW26/27 (22-11-2026), SLAbase 8032 per bos (munt-peterselie mix): alleen tellen; PAR/MIN volgt
             { id: 'postuma-tauge', artikel: '', naam: 'TAUGE per zakje', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 97, min: 88, dagPar: { di: { par: 82, min: 74 }, do: { par: 69, min: 62 }, za: { par: 97, min: 88 } }, telEenheid: 'zakje', bestelFactor: 8, bestelEenheid: 'doos (8 zakjes)', slabase: '8019', vraag: { di: [67.3, 74], do: [54.7, 62], za: [84.3, 88] } }, // SLAbase 8019: DI gem 67.3 / max 74, DO gem 54.7 / max 62, ZA gem 84.3 / max 88 | tel per zakje, bestel per doos van 8; PAR/MIN in zakjes (SLAbase bakje 100 g = 1 zakje)
             { id: 'postuma-granaat', artikel: '', naam: 'GRANAATAPPELPIT doos (6 bakjes à 100 gr)', leverancier: 'POSTUMA', locatie: 'ORDERPICK CEL', categorie: 'AGF', par: 0, min: 0, vasteLevering: { di: 20, do: 17, za: 24 }, slabase: '8029', vraag: { di: [19.2, 23], do: [16.4, 19], za: [22.1, 26] }, signaal: true }, // SLAbase 8029: DI gem 19.2 / max 23, DO gem 16.4 / max 19, ZA gem 22.1 / max 26 | VASTE LEVERING Postuma: di 20, do 17, za 24 dozen — app bestelt niet, geeft wel signaal als voorraad + vaste levering onder de dagpiek zit
 
             // ── DKW · VHC · MAGAZIJN
             { id: 'vhc-olijfolie', artikel: '', naam: 'OLIJFOLIE FLES', leverancier: 'VHC', locatie: 'MAGAZIJN', categorie: 'DKW', par: 5, min: 3, slabase: '9022', vraag: { di: [1, 1], do: [2, 3], za: [1, 1] } }, // SLAbase 9022: dagpiek 3 (DI 1, DO 3, ZA 1) x 1.5
-            { id: 'vhc-mangopuree', artikel: '9703', naam: 'MANGO PUREE ONGEZOET bak (1 kg)', leverancier: 'VHC', locatie: 'MAGAZIJN', categorie: 'DKW', par: 5, min: 3, slabase: '6010', vraag: { di: [1.2, 2], do: [1, 1], za: [1.4, 3] } }, // SLAbase 6010: dagpiek 3 (DI 2, DO 1, ZA 3) x 1.5 | ongezoet, geen diepvries
+            { id: 'vhc-mangopuree', artikel: '9703', naam: 'MANGO PUREE ONGEZOET bak (1 kg) — UIT ASSORTIMENT', leverancier: 'VHC', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0, slabase: '6010' }, // HW26/27 (22-11-2026): uitgestroomd met de Summer smoothie, SLAbase 6010 niet leverbaar -> alleen restvoorraad tellen, niet bestellen (was PAR 5 / MIN 3)
 
             // ── DKW · Kraats · MAGAZIJN
             { id: 'kraats-eieren', artikel: '', naam: 'EIEREN (doos) 180 stuks - kraats', leverancier: 'Kraats', locatie: 'MAGAZIJN', categorie: 'DKW', par: 0, min: 0, slabase: '9020', vraag: { di: [3.1, 4], do: [3.4, 5], za: [4.5, 7] }, signaal: true }, // SLAbase 9020: DI gem 3.1 / max 4, DO gem 3.4 / max 5, ZA gem 4.5 / max 7
